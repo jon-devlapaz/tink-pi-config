@@ -143,7 +143,7 @@ export function summarizeRun(options: {
           apiKey: auth.apiKey,
           env: auth.env,
           headers: auth.headers,
-          maxTokens: 1_000,
+          maxTokens: 1_500,
           maxRetries: 1,
           signal: effectSignal,
           timeoutMs: 40_000,

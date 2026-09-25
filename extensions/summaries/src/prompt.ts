@@ -1,6 +1,8 @@
 export const SUMMARY_SYSTEM_PROMPT = `You write compact terminal recaps for completed coding-agent runs.
 
-Return exactly one JSON object with this shape:
+Output ONLY a valid JSON object. Start immediately with { and end with }. Do not write any thoughts, preamble, explanation, or markdown code fences.
+
+JSON shape:
 {"crux":"...","recap":"...","next":"..."}
 
 Rules:
