@@ -4,6 +4,7 @@ import { Data, Effect } from "effect";
 import type { SummaryConfig } from "./config.ts";
 import { buildSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from "./prompt.ts";
 
+const CRUX_MAX_LENGTH = 500;
 const RECAP_MAX_LENGTH = 2_400;
 const NEXT_MAX_LENGTH = 400;
 
@@ -13,6 +14,7 @@ class SummaryError extends Data.TaggedError("SummaryError")<{
 }> {}
 
 export interface RunRecap {
+  readonly crux: string;
   readonly recap: string;
   readonly next: string;
 }
@@ -39,22 +41,32 @@ function cleanField(value: string, maxLength: number) {
 function parseCandidate(candidate: string) {
   try {
     const value: unknown = JSON.parse(candidate);
+    if (!isRecord(value)) return undefined;
+
+    const sortedKeys = Object.keys(value).sort().join(",");
+    if (sortedKeys !== "crux,next,recap" && sortedKeys !== "next,recap") {
+      return undefined;
+    }
+
     if (
-      !isRecord(value) ||
-      Object.keys(value).sort().join(",") !== "next,recap" ||
       typeof value.recap !== "string" ||
       typeof value.next !== "string"
     ) {
       return undefined;
     }
 
+    const cruxRaw = typeof value.crux === "string" ? value.crux : "";
+    const crux = cleanField(
+      cruxRaw.replace(/^crux\s*:\s*/i, ""),
+      CRUX_MAX_LENGTH,
+    );
     const recap = cleanField(value.recap, RECAP_MAX_LENGTH);
     const next = cleanField(
       value.next.replace(/^next\s*:\s*/i, ""),
       NEXT_MAX_LENGTH,
     );
     if (!recap || !next) return undefined;
-    return { recap, next } satisfies RunRecap;
+    return { crux, recap, next } satisfies RunRecap;
   } catch {
     return undefined;
   }

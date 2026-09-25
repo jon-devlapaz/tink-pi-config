@@ -38,6 +38,15 @@ class RecapCard {
       this.theme.fg("accent", "✦ ") +
       this.theme.fg("customMessageLabel", this.theme.bold("Run recap"));
     box.addChild(new Text(title, 0, 0));
+    if (this.data.crux) {
+      box.addChild(
+        new Text(
+          `${this.theme.fg("accent", this.theme.bold("Crux:"))} ${this.theme.fg("customMessageText", this.data.crux)}`,
+          0,
+          1,
+        ),
+      );
+    }
     box.addChild(
       new Markdown(this.data.recap, 0, 1, getMarkdownTheme(), {
         color: (text) => this.theme.fg("customMessageText", text),
