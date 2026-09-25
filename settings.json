@@ -24,6 +24,7 @@
     "openai-codex/gpt-6-luna",
     "freellmapi/auto:smart",
     "freellmapi/auto:reliable",
+    "freellmapi/fusion",
     "antigravity/gemini-3.1-pro",
     "antigravity/claude-opus-4-6"
   ],
