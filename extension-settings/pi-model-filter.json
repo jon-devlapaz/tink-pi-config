@@ -1,0 +1,10 @@
+{
+  "$schema": "./schemas/pi-model-filter.schema.json",
+  "include": [
+    {
+      "provider": "cursor",
+      "models": ["auto", "grok-4.6*", "grok-4.7*", "cursor-grok-4.6*", "cursor-grok-4.7*", "composer*"]
+    }
+  ],
+  "exclude": []
+}

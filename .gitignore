@@ -1,0 +1,32 @@
+# Secrets and credentials
+auth.json
+*-accounts.json
+*.private.json
+xai.json
+.env*
+*.env
+*.pem
+*.key
+
+# Session histories and runtime state
+sessions/
+pi-blackhole/
+pi-typesafe/
+pi-voice.json
+trust.json
+mcp-cache.json
+mcp-npx-cache.json
+mcp-onboarding.json
+models-store.json
+models.json
+*.log
+debug.ndjson
+*-pending*.json
+*.tmp
+
+# Dependencies and build outputs
+node_modules/
+npm/
+git/
+dist/
+.DS_Store

@@ -1,0 +1,60 @@
+{
+  "lastChangelogVersion": "0.87.1",
+  "theme": "github-dark-default",
+  "quietStartup": true,
+  "defaultProvider": "antigravity",
+  "defaultModel": "gemini-3.8-flash",
+  "defaultThinkingLevel": "medium",
+  "enabledModels": [
+    "meta/muse-spark-1.3",
+    "meta/muse-spark-1.3-contributor",
+    "freellmapi/auto:fast",
+    "openai-codex/gpt-6-sol",
+    "antigravity/gemini-3.8-flash",
+    "cursor/auto",
+    "cursor/grok-4.7",
+    "cursor/grok-4.7-256k",
+    "cursor/grok-4.7-256k-fast",
+    "cursor/grok-4.7-256k-max-mode",
+    "cursor/grok-4.7-256k-max-mode-fast",
+    "cursor/grok-4.7-500k-max-mode",
+    "cursor/grok-4.7-500k-max-mode-fast",
+    "cursor/grok-4.7-fast",
+    "openai-codex/gpt-6-astra",
+    "openai-codex/gpt-6-luna",
+    "freellmapi/auto:smart",
+    "freellmapi/auto:reliable",
+    "antigravity/gemini-3.1-pro",
+    "antigravity/claude-opus-4-6"
+  ],
+  "modelThinkingLevels": {
+    "freellmapi/auto:fast": "off",
+    "antigravity/gemini-3.8-flash": "medium",
+    "meta/muse-spark-1.3-contributor": "low"
+  },
+  "compaction": {
+    "enabled": false
+  },
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "hideThinkingBlock": true,
+  "retry": {
+    "provider": {
+      "timeoutMs": 600000
+    }
+  },
+  "externalEditor": "code --wait",
+  "defaultProjectTrust": "always",
+  "packages": [
+    "npm:pi-blackhole",
+    "git:github.com/earendil-works/pi-review",
+    "npm:pi-typesafe",
+    "npm:@zigai/pi-model-filter",
+    "npm:@andrewjacop/pi-herdr",
+    "npm:pi-antigravity",
+    "npm:@rahularya01/pi-cursor",
+    "npm:pi-mcp-adapter",
+    "git:github.com/helloHupc/pi-git-commands",
+    "npm:@earendil-works/pi-voice"
+  ]
+}
