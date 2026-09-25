@@ -146,7 +146,7 @@ export function summarizeRun(options: {
           maxTokens: 1_500,
           maxRetries: 1,
           signal: effectSignal,
-          timeoutMs: 40_000,
+          timeoutMs: 75_000,
           ...reasoningOptions(options.config.reasoning),
         },
       );
@@ -168,7 +168,7 @@ export function summarizeRun(options: {
             message: cause instanceof Error ? cause.message : String(cause),
             cause,
           }),
-  }).pipe(Effect.timeout("45 seconds"));
+  }).pipe(Effect.timeout("80 seconds"));
 
   return Effect.runPromise(completion, { signal: options.signal });
 }
