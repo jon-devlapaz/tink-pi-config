@@ -18,7 +18,7 @@ export const CHILD_EXCLUDED_TOOL_NAMES = [
   "subagent_check",
   "subagent_list",
   "workflow",
-  "ask_user",
+  "ask_user_question",
 ] as const;
 
 /** Fresh SDK options avoid turning the denylist into an accidental allowlist. */

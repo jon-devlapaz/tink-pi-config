@@ -21,11 +21,20 @@ export interface PullRequestInfo {
   isDraft: boolean;
 }
 
+export interface ChecksSummary {
+  pass: number;
+  fail: number;
+  pending: number;
+}
+
 export interface GitInfoState {
   isRepository: boolean;
   branch: string | null;
   changedFiles: number;
   pullRequest: PullRequestInfo | null;
+  ahead: number | null;
+  behind: number | null;
+  checks: ChecksSummary | null;
 }
 
 export function emptyModelInfoState(): ModelInfoState {
@@ -49,6 +58,9 @@ export function emptyGitInfoState(): GitInfoState {
     branch: null,
     changedFiles: 0,
     pullRequest: null,
+    ahead: null,
+    behind: null,
+    checks: null,
   };
 }
 
@@ -87,6 +99,16 @@ function isPullRequestInfo(value: unknown): value is PullRequestInfo {
   );
 }
 
+function isChecksSummary(value: unknown): value is ChecksSummary {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.pass === "number" &&
+    typeof value.fail === "number" &&
+    typeof value.pending === "number"
+  );
+}
+
 export function isGitInfoState(value: unknown): value is GitInfoState {
   if (!isRecord(value)) return false;
 
@@ -94,6 +116,11 @@ export function isGitInfoState(value: unknown): value is GitInfoState {
     typeof value.isRepository === "boolean" &&
     (value.branch === null || typeof value.branch === "string") &&
     typeof value.changedFiles === "number" &&
-    (value.pullRequest === null || isPullRequestInfo(value.pullRequest))
+    (value.pullRequest === null || isPullRequestInfo(value.pullRequest)) &&
+    (value.ahead === undefined || isNullableNumber(value.ahead)) &&
+    (value.behind === undefined || isNullableNumber(value.behind)) &&
+    (value.checks === null ||
+      value.checks === undefined ||
+      isChecksSummary(value.checks))
   );
 }

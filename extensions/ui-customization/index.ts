@@ -12,13 +12,17 @@ import {
   visibleWidth,
 } from "@earendil-works/pi-tui";
 import {
-  emptyGitInfoState,
+  formatChecks,
+  formatSyncStatus,
+} from "../git-info/src/github-status.ts";
+import {
   emptyModelInfoState,
   GIT_INFO_CHANNEL,
   MODEL_INFO_CHANNEL,
   REFRESH_CHANNEL,
   isGitInfoState,
   isModelInfoState,
+  type GitInfoState,
 } from "../shared/dashboard-state.ts";
 
 type Rgb = [number, number, number];
@@ -187,7 +191,7 @@ function columns(left: string, right: string, width: number) {
 export default function uiCustomization(pi: ExtensionAPI) {
   let title = "pi";
   let modelInfo = emptyModelInfoState();
-  let gitInfo = emptyGitInfoState();
+  let gitInfo: GitInfoState | null = null;
   let requestRender: (() => void) | undefined;
   let activeTui: DashboardTui | undefined;
   let themeRemovalTimers: Array<ReturnType<typeof setTimeout>> = [];
@@ -240,17 +244,23 @@ export default function uiCustomization(pi: ExtensionAPI) {
         invalidate() {},
         render(width: number) {
           const directory = theme.fg("text", formatDirectory(ctx.cwd));
-          const fileLabel = gitInfo.changedFiles === 1 ? "file" : "files";
-          let git = gitInfo.branch
-            ? `${gitInfo.branch} · ${gitInfo.changedFiles} ${fileLabel} changed`
-            : "";
+          const info = gitInfo;
+          let git = "";
+          if (info && !info.isRepository) {
+            git = "(no git repo)";
+          } else if (info?.branch) {
+            const fileLabel = info.changedFiles === 1 ? "file" : "files";
+            git =
+              `${info.branch}${formatSyncStatus(info.ahead ?? null, info.behind ?? null)} · ${info.changedFiles} ${fileLabel} changed`;
 
-          if (gitInfo.pullRequest) {
-            const prLabel = `PR #${gitInfo.pullRequest.number}`;
-            const linkedPr = getCapabilities().hyperlinks
-              ? hyperlink(prLabel, gitInfo.pullRequest.url)
-              : prLabel;
-            git += ` · ${linkedPr}`;
+            if (info.pullRequest) {
+              const draft = info.pullRequest.isDraft ? " (draft)" : "";
+              const prLabel = `PR #${info.pullRequest.number}${draft}${formatChecks(info.checks ?? null)}`;
+              const linkedPr = getCapabilities().hyperlinks
+                ? hyperlink(prLabel, info.pullRequest.url)
+                : prLabel;
+              git += ` · ${linkedPr}`;
+            }
           }
 
           const contextPercent =
@@ -298,7 +308,7 @@ export default function uiCustomization(pi: ExtensionAPI) {
   pi.on("session_start", (_event, ctx) => {
     title = formatDirectory(ctx.cwd);
     modelInfo = emptyModelInfoState();
-    gitInfo = emptyGitInfoState();
+    gitInfo = null;
     install(ctx);
   });
 

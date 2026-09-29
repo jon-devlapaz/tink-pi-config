@@ -34,7 +34,8 @@ export function strictifyOpenAIFunctionTools(payload: unknown) {
 
 export default function sparkStrictTools(pi: ExtensionAPI) {
   pi.on("before_provider_request", (event, ctx) => {
-    if (ctx.model?.provider !== "spark-deepseek") return;
+    const compat = ctx.model?.compat as { supportsStrictMode?: boolean } | undefined;
+    if (compat?.supportsStrictMode !== true) return;
     return strictifyOpenAIFunctionTools(event.payload);
   });
 }

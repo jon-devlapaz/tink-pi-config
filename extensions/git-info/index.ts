@@ -13,6 +13,12 @@ import {
   loadChangedFiles,
   showChangedFiles,
 } from "./src/changed-files-view.ts";
+import {
+  formatChecks,
+  formatSyncStatus,
+  parseAheadBehind,
+  parseChecksJson,
+} from "./src/github-status.ts";
 import { runCommand, type CommandRunner } from "./src/process.ts";
 import { makeRefreshCoordinator } from "./src/refresh-coordinator.ts";
 import {
@@ -81,6 +87,30 @@ export default function gitInfo(pi: ExtensionAPI) {
       return parsePullRequestJson(result.stdout);
     });
 
+  const lookupSyncStatus = (ctx: ExtensionContext) =>
+    Effect.gen(function* () {
+      const result = yield* run(
+        "git",
+        ["rev-list", "--left-right", "--count", "HEAD...@{upstream}"],
+        ctx,
+        GIT_TIMEOUT_MS,
+      );
+      if (result.code !== 0) return null;
+      return parseAheadBehind(result.stdout);
+    });
+
+  const lookupChecks = (ctx: ExtensionContext, branch: string) =>
+    Effect.gen(function* () {
+      const result = yield* run(
+        "gh",
+        ["pr", "checks", branch, "--json", "bucket,name"],
+        ctx,
+        GH_TIMEOUT_MS,
+      );
+      if (result.code !== 0) return null;
+      return parseChecksJson(result.stdout);
+    });
+
   const refreshEffect = (
     ctx: ExtensionContext,
     forcePullRequest: boolean,
@@ -106,19 +136,26 @@ export default function gitInfo(pi: ExtensionAPI) {
           return;
         }
 
-        const [branchResult, headResult, statusResult] = yield* Effect.all(
-          [
-            run("git", ["branch", "--show-current"], ctx, GIT_TIMEOUT_MS),
-            run("git", ["rev-parse", "--short", "HEAD"], ctx, GIT_TIMEOUT_MS),
-            run(
-              "git",
-              ["status", "--porcelain=v1", "--untracked-files=all"],
-              ctx,
-              GIT_TIMEOUT_MS,
-            ),
-          ],
-          { concurrency: "unbounded" },
-        );
+        const [branchResult, headResult, statusResult, syncResult] =
+          yield* Effect.all(
+            [
+              run("git", ["branch", "--show-current"], ctx, GIT_TIMEOUT_MS),
+              run(
+                "git",
+                ["rev-parse", "--short", "HEAD"],
+                ctx,
+                GIT_TIMEOUT_MS,
+              ),
+              run(
+                "git",
+                ["status", "--porcelain=v1", "--untracked-files=all"],
+                ctx,
+                GIT_TIMEOUT_MS,
+              ),
+              lookupSyncStatus(ctx),
+            ],
+            { concurrency: "unbounded" },
+          );
         if (refreshGeneration !== generation) return;
 
         const branchName = branchResult.stdout.trim();
@@ -135,7 +172,10 @@ export default function gitInfo(pi: ExtensionAPI) {
             statusResult.code === 0
               ? countChangedFiles(statusResult.stdout)
               : 0,
+          ahead: syncResult?.ahead ?? null,
+          behind: syncResult?.behind ?? null,
           pullRequest: branchChanged ? null : state.pullRequest,
+          checks: branchChanged ? null : state.checks,
         };
         publish();
 
@@ -149,7 +189,11 @@ export default function gitInfo(pi: ExtensionAPI) {
           queriedPrBranch = branchName;
           const pullRequest = yield* lookupPullRequest(ctx, branchName);
           if (refreshGeneration !== generation) return;
-          state = { ...state, pullRequest };
+          const checks = pullRequest
+            ? yield* lookupChecks(ctx, branchName)
+            : null;
+          if (refreshGeneration !== generation) return;
+          state = { ...state, pullRequest, checks };
           publish();
         }
       });
@@ -260,8 +304,12 @@ export default function gitInfo(pi: ExtensionAPI) {
       if (!state.isRepository) {
         ctx.ui.notify("Not a git repository", "warning");
       } else if (state.pullRequest) {
+        const draft = state.pullRequest.isDraft ? " (draft)" : "";
+        const sync = formatSyncStatus(state.ahead, state.behind);
+        const checksSummary = formatChecks(state.checks);
+        const checks = checksSummary ? ` checks${checksSummary}` : "";
         ctx.ui.notify(
-          `PR #${state.pullRequest.number}: ${state.pullRequest.url}`,
+          `PR #${state.pullRequest.number}${draft}${sync}${checks}: ${state.pullRequest.url}`,
           "info",
         );
       } else {

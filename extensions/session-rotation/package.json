@@ -1,0 +1,11 @@
+{
+  "name": "session-rotation",
+  "scripts": {
+    "check": "tsc --noEmit -p ."
+  },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
