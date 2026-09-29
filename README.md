@@ -32,6 +32,7 @@ Here is what makes this setup awesome:
 │   ├── git-info/             # Git status and branch viewer (/lg, /pr)
 │   ├── model-info/           # Token metrics and context usage bar
 │   ├── summaries/            # Plain-English run recap cards
+│   ├── tink-skills/          # Ambient tink skill activation (/tink-skills)
 │   ├── ui-customization/     # Custom status bar and styling
 │   └── workflows/            # Multi-agent workflow runner
 ├── prompts/                  # Reusable prompts (/commit-msg, /jevify)
@@ -129,3 +130,53 @@ Then fire up Pi:
 ```bash
 pi
 ```
+
+---
+
+## Ambient tink skills (`extensions/tink-skills`)
+
+On each prompt, this extension asks [tink](https://github.com/jon-devlapaz/tink)'s router which approved skill applies, if any. When one does, the full `SKILL.md` text for that skill is sent to the model with that request. The agent never sees a skill catalog and never runs tink.
+
+### Install and enable
+
+1. Put `tink` and `tink-hook` on your `PATH`, or set `TINK_HOOK_BIN=/path/to/tink-hook`.
+2. Review and approve your skills. Only approved tree digests are ever delivered:
+   ```bash
+   tink library approve --all
+   ```
+3. Opt in per project. Either run `tink-hook enable` in the repo, or use `/tink-skills on` inside Pi. Nothing is delivered until you opt in.
+
+| Command | Runs |
+| --- | --- |
+| `/tink-skills status` | `tink-hook status` for the current project |
+| `/tink-skills on` | `tink-hook enable` |
+| `/tink-skills off` | `tink-hook disable` |
+
+Opting in is stored in `$TINK_HOME/hook.json`. The extension never edits Pi settings, and Pi needs no `tink-hook print-settings` step because the extension is picked up from `extensions/` automatically. `TINK_HOOK=off` or a `<repo>/.tink/hook.off` file turns routing off.
+
+| Env var | Default | Meaning |
+| --- | --- | --- |
+| `TINK_HOOK_BIN` | `tink-hook` on `PATH` | Router executable |
+| `TINK_SKILLS_DEADLINE_MS` | `4000` | Hard deadline. After it, the router process group is killed and the prompt goes out without a skill |
+
+### What gets injected, and where
+
+- The router runs once per user prompt, in `before_agent_start`. Slash commands (`/template`, `/skill:x`), extension commands and extension-sourced messages (`sendUserMessage`) are not routed.
+- The skill is added in Pi's `context` event, which runs before every LLM call and gets a deep copy of the messages. The extension appends one text block to the prompt's user message in that copy:
+  ```text
+  tink: the skill below was selected for this request. Apply its instructions to the user's request; do not mention this mechanism unless the user asks.
+  <tink-skill name="…" digest="sha256:…">
+  …SKILL.md, byte-exact…
+  </tink-skill>
+  ```
+- The copy is sent on every LLM call in that run, including calls after tool results. State is cleared on `agent_settled` and `session_shutdown`, and each new prompt is routed from scratch.
+- **Ephemeral:** the skill text is never written to the session JSONL. The system prompt is not touched, so it stays byte-identical whether or not a skill is used. Nothing is added to history.
+- **Fail-open:** if the router is missing, crashes, hangs, returns malformed JSON or a `contract_version` other than 1, or returns `inject` with empty content, the prompt goes out unchanged and no error is raised.
+
+### E2E
+
+```bash
+npm run test:e2e   # writes target/e2e/tink-skills.json
+```
+
+This runs real headless Pi processes (`--mode rpc`) against a local stub OpenAI-compatible provider that records every request. Each run uses an isolated `PI_CODING_AGENT_DIR` and `HOME`, and no network or API key is used. Most cases use a fake `tink-hook`. One case uses the real `tink-hook` and `tink` binaries, and it is skipped if they are not found (`TINK_BIN`, `TINK_ROUTE_SRC`).

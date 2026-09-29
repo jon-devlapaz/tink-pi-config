@@ -30,3 +30,6 @@ npm/
 git/
 dist/
 .DS_Store
+
+# E2E artifacts
+target/
