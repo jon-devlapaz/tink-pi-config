@@ -52,7 +52,6 @@
     "git:github.com/McCune1224/pi-pstack",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-todo",
-    "npm:pi-subagents",
-    "npm:pi-provider-fallback"
+    "npm:pi-subagents"
   ]
 }
