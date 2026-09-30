@@ -1,5 +1,4 @@
 {
-  "lastChangelogVersion": "0.99.0",
   "theme": "github-dark-default",
   "quietStartup": true,
   "defaultProvider": "freellmapi",
@@ -16,7 +15,11 @@
     "openai-codex/gpt-6-astra",
     "openai-codex/gpt-6-luna",
     "antigravity/claude-opus-4-6",
-    "antigravity/claude-sonnet-4-6"
+    "antigravity/claude-sonnet-4-6",
+    "openai/gpt-6.1-sol",
+    "openai/gpt-6-sol",
+    "openai/gpt-6-luna",
+    "openai/gpt-6-astra"
   ],
   "modelThinkingLevels": {
     "freellmapi/auto:fast": "off",

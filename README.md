@@ -102,7 +102,15 @@ npm install
 npm --prefix extensions/file-search install
 ```
 
-### 3. Verify
+### 3. Silence Pi runtime churn (per machine)
+Pi rewrites machine-specific keys (`deviceId`, `lastChangelogVersion`) into the live `settings.json` on every run. A clean filter strips them on stage so they can never leak into commits. The binding ships in `.gitattributes`; define the filter once per machine (requires `jq`):
+
+```bash
+git config filter.strip-pi-runtime.clean "jq 'del(.deviceId, .lastChangelogVersion)'"
+git config filter.strip-pi-runtime.smudge cat
+```
+
+### 4. Verify
 Run the test suite to make sure all extensions build and pass:
 
 ```bash
@@ -110,7 +118,7 @@ npm run check
 npm test
 ```
 
-### 4. Log in & Run
+### 5. Log in & Run
 Log into your model provider of choice:
 
 ```bash

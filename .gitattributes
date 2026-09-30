@@ -1,0 +1,3 @@
+# Strip Pi runtime-mutated keys on stage so machine state never leaks into commits.
+# The filter itself is defined per-machine (see README); this file ships the binding.
+settings.json filter=strip-pi-runtime
