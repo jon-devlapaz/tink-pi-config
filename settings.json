@@ -1,57 +1,75 @@
 {
   "theme": "github-dark-default",
   "quietStartup": true,
-  "defaultProvider": "freellmapi",
-  "defaultModel": "fusion",
+  "defaultProvider": "openai",
+  "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "meta/muse-spark-1.3-contributor",
-    "openai-codex/gpt-6-sol",
-    "freellmapi/fusion",
-    "freellmapi/auto:fast",
-    "freellmapi/auto:smart",
-    "freellmapi/auto:reliable",
-    "antigravity/gemini-3.8-flash",
-    "openai-codex/gpt-6-astra",
-    "openai-codex/gpt-6-luna",
-    "antigravity/claude-opus-4-6",
-    "antigravity/claude-sonnet-4-6",
-    "openai/gpt-6.1-sol",
-    "openai/gpt-6-sol",
     "openai/gpt-6-luna",
-    "openai/gpt-6-astra"
+    "openai/gpt-6.1-sol",
+    "openai/gpt-6-astra",
+    "openai-codex/gpt-6-astra",
+    "openai-codex/gpt-6.1-sol",
+    "openai-codex/gpt-5.6-luna"
   ],
   "modelThinkingLevels": {
     "freellmapi/auto:fast": "off",
     "freellmapi/fusion": "off",
-    "antigravity/gemini-3.8-flash": "medium",
-    "meta/muse-spark-1.3-contributor": "max"
+    "openai/gpt-6-luna": "medium",
+    "openai/gpt-6.1-sol": "high",
+    "openai/gpt-6-astra": "max"
   },
   "compaction": {
     "enabled": false
   },
   "steeringMode": "all",
   "followUpMode": "all",
-  "hideThinkingBlock": true,
+  "hideThinkingBlock": false,
   "retry": {
     "provider": {
       "timeoutMs": 120000
     }
   },
   "externalEditor": "code --wait",
-  "defaultProjectTrust": "ask",
+  "defaultProjectTrust": "always",
   "packages": [
     "npm:pi-blackhole",
     "git:github.com/earendil-works/pi-review",
     "npm:pi-typesafe",
     "npm:@andrewjacop/pi-herdr",
-    "npm:pi-antigravity",
-    "npm:pi-mcp-adapter",
+    {
+      "source": "npm:pi-mcp-adapter",
+      "extensions": []
+    },
     "git:github.com/helloHupc/pi-git-commands",
     "npm:@earendil-works/pi-voice",
     "git:github.com/McCune1224/pi-pstack",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-todo",
     "npm:pi-subagents"
-  ]
+  ],
+  "extensions": [
+    "+builtin:mcp"
+  ],
+  "subagents": {
+    "defaultThinking": "high",
+    "agentOverrides": {
+      "scout": {
+        "model": "openai/gpt-6-luna"
+      },
+      "delegate": {
+        "model": "openai/gpt-6-luna"
+      }
+    }
+  },
+  "showHardwareCursor": true,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "markdown": {
+    "mermaid": "streaming"
+  },
+  "showCacheMissNotices": true,
+  "tuiMode": "fullscreen",
+  "fullscreenExitOutput": "transcript"
 }
