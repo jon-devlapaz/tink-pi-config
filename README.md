@@ -103,12 +103,16 @@ npm --prefix extensions/file-search install
 ```
 
 ### 3. Silence Pi runtime churn (per machine)
-Pi rewrites machine-specific keys (`deviceId`, `lastChangelogVersion`) into the live `settings.json` on every run. A clean filter strips them on stage so they can never leak into commits. The binding ships in `.gitattributes`; define the filter once per machine (requires `jq`):
+Pi rewrites machine-specific keys (`deviceId`, `lastChangelogVersion`) into the live `settings.json` on every run, and the enabled-model list (`enabledModels`) changes constantly as you try models. A clean filter strips these on stage so they can never leak into commits or show up as churn. The binding ships in `.gitattributes`; define the filter once per machine (requires `jq`):
 
 ```bash
-git config filter.strip-pi-runtime.clean "jq 'del(.deviceId, .lastChangelogVersion)'"
+git config filter.strip-pi-runtime.clean "jq 'del(.deviceId, .lastChangelogVersion, .enabledModels)'"
 git config filter.strip-pi-runtime.smudge cat
 ```
+
+`enabledModels` therefore lives only in your live `settings.json` and is not versioned. Back it up yourself if it matters: `git checkout settings.json`, or a pull or branch switch that touches the file, rewrites it from the committed copy and drops the list. A fresh clone starts without it, so choose your models with `pi /model`.
+
+After you change models, `git status` may still list `settings.json` as modified: git's quick size check runs before the filter. Nothing is actually different (`git diff` is empty); `git add settings.json` clears it and stages nothing unless another key really changed.
 
 ### 4. Verify
 Run the test suite to make sure all extensions build and pass:
