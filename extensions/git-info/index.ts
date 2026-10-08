@@ -49,12 +49,18 @@ function parsePullRequest(value: unknown) {
   } satisfies PullRequestInfo;
 }
 
-function parsePullRequestJson(value: string) {
-  try {
-    return parsePullRequest(JSON.parse(value));
-  } catch {
-    return null;
-  }
+export function parsePullRequestJson(value: string, code = 0, stderr = "") {
+  if (code !== 0)
+    throw new Error(
+      `GitHub PR lookup failed: ${stderr.trim() || `exit ${code}`}`,
+    );
+  const parsed: unknown = JSON.parse(value);
+  if (!Array.isArray(parsed))
+    throw new Error("GitHub returned an invalid PR list");
+  if (parsed.length === 0) return null;
+  const pr = parsePullRequest(parsed[0]);
+  if (!pr) throw new Error("GitHub returned invalid PR metadata");
+  return pr;
 }
 
 export default function gitInfo(pi: ExtensionAPI) {
@@ -79,12 +85,22 @@ export default function gitInfo(pi: ExtensionAPI) {
     Effect.gen(function* () {
       const result = yield* run(
         "gh",
-        ["pr", "view", branch, "--json", "number,url,state,isDraft"],
+        [
+          "pr",
+          "list",
+          "--head",
+          branch,
+          "--state",
+          "open",
+          "--limit",
+          "1",
+          "--json",
+          "number,url,state,isDraft",
+        ],
         ctx,
         GH_TIMEOUT_MS,
       );
-      if (result.code !== 0) return null;
-      return parsePullRequestJson(result.stdout);
+      return parsePullRequestJson(result.stdout, result.code, result.stderr);
     });
 
   const lookupSyncStatus = (ctx: ExtensionContext) =>
@@ -107,8 +123,21 @@ export default function gitInfo(pi: ExtensionAPI) {
         ctx,
         GH_TIMEOUT_MS,
       );
-      if (result.code !== 0) return null;
-      return parseChecksJson(result.stdout);
+      // gh uses 1 for failing checks and 8 for pending checks, not transport errors.
+      if (result.code !== 0 && result.code !== 1 && result.code !== 8)
+        throw new Error(
+          `GitHub checks lookup failed: ${result.stderr.trim() || `exit ${result.code}`}`,
+        );
+      const checks = parseChecksJson(result.stdout);
+      if (
+        !checks ||
+        (result.code === 1 && checks.fail === 0) ||
+        (result.code === 8 && checks.pending === 0)
+      )
+        throw new Error(
+          `GitHub checks lookup failed: ${result.stderr.trim() || "invalid checks response"}`,
+        );
+      return checks;
     });
 
   const refreshEffect = (
@@ -132,6 +161,8 @@ export default function gitInfo(pi: ExtensionAPI) {
         if (repo.code !== 0 || repo.stdout.trim() !== "true") {
           queriedPrBranch = null;
           state = emptyGitInfoState();
+          ctx.ui.setStatus("git-info", undefined);
+          reportedDefect = "";
           publish();
           return;
         }
@@ -140,12 +171,7 @@ export default function gitInfo(pi: ExtensionAPI) {
           yield* Effect.all(
             [
               run("git", ["branch", "--show-current"], ctx, GIT_TIMEOUT_MS),
-              run(
-                "git",
-                ["rev-parse", "--short", "HEAD"],
-                ctx,
-                GIT_TIMEOUT_MS,
-              ),
+              run("git", ["rev-parse", "--short", "HEAD"], ctx, GIT_TIMEOUT_MS),
               run(
                 "git",
                 ["status", "--porcelain=v1", "--untracked-files=all"],
@@ -186,6 +212,16 @@ export default function gitInfo(pi: ExtensionAPI) {
         }
 
         if (forcePullRequest || branchChanged) {
+          const remotes = yield* run("git", ["remote"], ctx, GIT_TIMEOUT_MS);
+          if (remotes.code !== 0)
+            throw new Error(
+              `Git remote lookup failed: ${remotes.stderr.trim()}`,
+            );
+          if (!remotes.stdout.trim()) {
+            queriedPrBranch = branchName;
+            ctx.ui.setStatus("git-info", undefined);
+            return;
+          }
           queriedPrBranch = branchName;
           const pullRequest = yield* lookupPullRequest(ctx, branchName);
           if (refreshGeneration !== generation) return;
@@ -193,7 +229,10 @@ export default function gitInfo(pi: ExtensionAPI) {
             ? yield* lookupChecks(ctx, branchName)
             : null;
           if (refreshGeneration !== generation) return;
+          queriedPrBranch = branchName;
           state = { ...state, pullRequest, checks };
+          ctx.ui.setStatus("git-info", undefined);
+          reportedDefect = "";
           publish();
         }
       });
@@ -205,8 +244,16 @@ export default function gitInfo(pi: ExtensionAPI) {
   const refreshIfIdle = (ctx: ExtensionContext) =>
     refreshCoordinator.runIfIdle(refreshEffect(ctx, false, generation));
 
+  let reportedDefect = "";
   const reportBackgroundDefect = (defect: unknown) =>
-    Effect.logError("git-info background task defect", defect);
+    Effect.sync(() => {
+      const message = defect instanceof Error ? defect.message : String(defect);
+      currentContext?.ui.setStatus("git-info", "GitHub metadata unavailable");
+      if (message !== reportedDefect) {
+        currentContext?.ui.notify(message, "warning");
+        reportedDefect = message;
+      }
+    });
 
   const poll = () =>
     Effect.suspend(() =>
@@ -297,10 +344,15 @@ export default function gitInfo(pi: ExtensionAPI) {
   pi.registerCommand("pr", {
     description: "Refresh git and pull request information",
     handler: async (_args, ctx) => {
-      await runEffect(getRuntime(), refresh(ctx, true), {
-        signal: ctx.signal,
-        interruptMessage: "Git and pull request refresh was cancelled.",
-      });
+      try {
+        await runEffect(getRuntime(), refresh(ctx, true), {
+          signal: ctx.signal,
+          interruptMessage: "Git and pull request refresh was cancelled.",
+        });
+      } catch (error) {
+        ctx.ui.setStatus("git-info", "GitHub metadata unavailable");
+        throw error;
+      }
       if (!state.isRepository) {
         ctx.ui.notify("Not a git repository", "warning");
       } else if (state.pullRequest) {

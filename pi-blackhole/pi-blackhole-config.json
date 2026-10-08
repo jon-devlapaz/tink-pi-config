@@ -1,0 +1,45 @@
+{
+  "compaction": "off",
+  "compactionEngine": "pi-default",
+  "tailBehavior": "minimal",
+  "midRunCompaction": "off",
+  "compactionSummaryMode": "default",
+  "compactAfterTokens": 81000,
+  "memory": false,
+  "sessionFallback": false,
+  "fullFoldAlways": true,
+  "observeAfterTokens": 15000,
+  "reflectAfterTokens": 25000,
+  "observationsPoolMaxTokens": 20000,
+  "observationsPoolTargetTokens": 10000,
+  "reflectorInputMaxTokens": 80000,
+  "dropperInputMaxTokens": 80000,
+  "observerChunkMaxTokens": 40000,
+  "observerPreambleMaxTokens": 0,
+  "dropperPressureThreshold": 0.7,
+  "dropperPoolFullnessThreshold": 0.1,
+  "agentMaxTurns": 16,
+  "providerIdleTimeoutMs": 120000,
+  "model": {
+    "provider": "freellmapi",
+    "id": "auto:smart"
+  },
+  "observerModel": {
+    "provider": "freellmapi",
+    "id": "auto:smart"
+  },
+  "reflectorModel": {
+    "provider": "freellmapi",
+    "id": "auto:smart"
+  },
+  "dropperModel": {
+    "provider": "freellmapi",
+    "id": "auto:smart"
+  },
+  "observerFallbackModels": [],
+  "reflectorFallbackModels": [],
+  "dropperFallbackModels": [],
+  "debug": false,
+  "debugLog": false,
+  "statusBar": false
+}

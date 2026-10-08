@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtempSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { applyRotation, planRotation } from "./retention.ts";
@@ -52,6 +58,44 @@ test("moves old sessions with sidecars, skips recent and active", () => {
   assert.ok(plan.moves.every((m) => !stillExists(m.from)));
 
   assert.equal(planRotation(sessions, archive, NOW, "bbb").moves.length, 0);
+});
+
+test("archive move failures are propagated and preserve the source", () => {
+  const { sessions, archive, scope } = fixture();
+  agedFile(scope, "blocked.jsonl", 60);
+  const plan = planRotation(sessions, archive, NOW, undefined);
+  mkdirSync(plan.moves[0].to, { recursive: true });
+  assert.throws(() => applyRotation(plan));
+  assert.equal(readFileSync(plan.moves[0].from, "utf8"), "x");
+});
+
+test("archive failures outside destination collisions are propagated", () => {
+  const { scope } = fixture();
+  assert.throws(() =>
+    applyRotation({
+      moves: [
+        {
+          from: join(scope, "missing.jsonl"),
+          to: join(scope, "archive", "missing.jsonl"),
+        },
+      ],
+      deleteDirs: [],
+    }),
+  );
+});
+
+test("existing archives are never overwritten", () => {
+  const { sessions, archive, scope } = fixture();
+  agedFile(scope, "same.jsonl", 60);
+  const plan = planRotation(sessions, archive, NOW, undefined);
+  const destination = plan.moves[0].to;
+  mkdirSync(destination.slice(0, destination.lastIndexOf("/")), {
+    recursive: true,
+  });
+  writeFileSync(destination, "existing archive");
+  assert.throws(() => applyRotation(plan), /already exists/);
+  assert.equal(readFileSync(destination, "utf8"), "existing archive");
+  assert.equal(readFileSync(plan.moves[0].from, "utf8"), "x");
 });
 
 test("deletes archives past retention", () => {

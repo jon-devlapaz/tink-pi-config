@@ -10,7 +10,8 @@ xai.json
 
 # Session histories and runtime state
 sessions/
-pi-blackhole/
+pi-blackhole/*
+!pi-blackhole/pi-blackhole-config.json
 pi-typesafe/
 pi-voice.json
 trust.json

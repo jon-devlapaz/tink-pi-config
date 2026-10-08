@@ -1,7 +1,7 @@
 {
   "theme": "github-dark-default",
   "quietStartup": true,
-  "defaultProvider": "openai",
+  "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
   "modelThinkingLevels": {
@@ -12,7 +12,7 @@
     "openai/gpt-6-astra": "max"
   },
   "compaction": {
-    "enabled": false
+    "enabled": true
   },
   "steeringMode": "all",
   "followUpMode": "all",
@@ -22,35 +22,59 @@
       "timeoutMs": 120000
     }
   },
-  "externalEditor": "code --wait",
   "defaultProjectTrust": "always",
   "packages": [
-    "npm:pi-blackhole",
-    "git:github.com/earendil-works/pi-review",
-    "npm:pi-typesafe",
-    "npm:@andrewjacop/pi-herdr",
+    "npm:pi-blackhole@0.5.11",
+    "git:github.com/earendil-works/pi-review@f1de050504936046c0f85b21fec0e0a93ef394eb",
+    "npm:pi-typesafe@0.9.1",
     {
-      "source": "npm:pi-mcp-adapter",
+      "source": "npm:@andrewjacop/pi-herdr@0.6.0",
       "extensions": []
     },
-    "git:github.com/helloHupc/pi-git-commands",
-    "npm:@earendil-works/pi-voice",
-    "git:github.com/McCune1224/pi-pstack",
-    "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:@juicesharp/rpiv-todo",
-    "npm:pi-subagents"
+    {
+      "source": "npm:pi-mcp-adapter@5.1.0",
+      "extensions": []
+    },
+    "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
+    "npm:@earendil-works/pi-voice@0.1.0",
+    "npm:@juicesharp/rpiv-ask-user-question@2.12.0",
+    {
+      "source": "npm:@juicesharp/rpiv-todo@2.12.0",
+      "extensions": []
+    },
+    "npm:pi-subagents@0.76.1",
+    "npm:@jetserge/next-prompt@0.4.2",
+    {
+      "source": "npm:pi-web-access@0.37.0",
+      "extensions": []
+    },
+    {
+      "source": "npm:@narumitw/pi-statusline@0.50.2",
+      "extensions": []
+    }
   ],
   "extensions": [
-    "+builtin:mcp"
+    "+builtin:mcp",
+    "-extensions/model-info/index.ts"
   ],
   "subagents": {
     "defaultThinking": "high",
     "agentOverrides": {
       "scout": {
-        "model": "openai/gpt-6-luna"
+        "model": "openai-codex/gpt-6-luna"
       },
       "delegate": {
-        "model": "openai/gpt-6-luna"
+        "model": "openai-codex/gpt-6-luna"
+      },
+      "researcher": {
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/npm/node_modules/pi-web-access/dist/index.js"
+        ]
+      },
+      "evidence-auditor": {
+        "subagentOnlyExtensions": [
+          "~/.pi/agent/npm/node_modules/pi-web-access/dist/index.js"
+        ]
       }
     }
   },

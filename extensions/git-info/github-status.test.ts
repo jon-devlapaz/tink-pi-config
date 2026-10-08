@@ -7,6 +7,24 @@ import {
   parseChecksJson,
 } from "./src/github-status.ts";
 
+test("only an explicitly empty GitHub PR list means no open PR", async () => {
+  const { parsePullRequestJson } = await import("./index.ts");
+  assert.equal(parsePullRequestJson("[]"), null);
+  assert.throws(
+    () => parsePullRequestJson("[]", 1, "synthetic auth failure"),
+    /synthetic auth failure/,
+  );
+  assert.deepEqual(
+    parsePullRequestJson(
+      '[{"number":7,"url":"https://example.test/7","state":"OPEN","isDraft":false}]',
+    ),
+    { number: 7, url: "https://example.test/7", isDraft: false },
+  );
+  assert.throws(() => parsePullRequestJson("authentication failure"));
+  assert.throws(() => parsePullRequestJson("{}"), /invalid PR list/);
+  assert.throws(() => parsePullRequestJson("[{}]"), /invalid PR metadata/);
+});
+
 test("parses tab-separated ahead/behind counts", () => {
   assert.deepEqual(parseAheadBehind("0\t0\n"), { ahead: 0, behind: 0 });
   assert.deepEqual(parseAheadBehind("2\t1"), { ahead: 2, behind: 1 });
@@ -52,7 +70,7 @@ test("rejects malformed checks output", () => {
   assert.equal(parseChecksJson(""), null);
   assert.equal(parseChecksJson("not json"), null);
   assert.equal(parseChecksJson('{"bucket":"pass"}'), null);
-  assert.equal(parseChecksJson('[42]'), null);
+  assert.equal(parseChecksJson("[42]"), null);
 });
 
 test("formats sync status arrows", () => {

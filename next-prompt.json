@@ -1,0 +1,7 @@
+{
+  "renderMode": "ghost",
+  "acceptKey": "alt+/",
+  "autoTrigger": true,
+  "thinking": "low",
+  "allowCrossProvider": false
+}

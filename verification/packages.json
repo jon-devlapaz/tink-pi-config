@@ -1,0 +1,83 @@
+{
+  "hostVersion": "1.0.4",
+  "packages": [
+    {
+      "source": "npm:pi-blackhole@0.5.11",
+      "kind": "npm",
+      "name": "pi-blackhole",
+      "version": "0.5.11"
+    },
+    {
+      "source": "git:github.com/earendil-works/pi-review@f1de050504936046c0f85b21fec0e0a93ef394eb",
+      "kind": "git",
+      "path": "github.com/earendil-works/pi-review",
+      "commit": "f1de050504936046c0f85b21fec0e0a93ef394eb"
+    },
+    {
+      "source": "npm:pi-typesafe@0.9.1",
+      "kind": "npm",
+      "name": "pi-typesafe",
+      "version": "0.9.1"
+    },
+    {
+      "source": "npm:@andrewjacop/pi-herdr@0.6.0",
+      "kind": "npm",
+      "name": "@andrewjacop/pi-herdr",
+      "version": "0.6.0"
+    },
+    {
+      "source": "npm:pi-mcp-adapter@5.1.0",
+      "kind": "npm",
+      "name": "pi-mcp-adapter",
+      "version": "5.1.0"
+    },
+    {
+      "source": "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
+      "kind": "git",
+      "path": "github.com/helloHupc/pi-git-commands",
+      "commit": "1f7ae5c723778cf16e55bda669899a3d3a3f7d1b"
+    },
+    {
+      "source": "npm:@earendil-works/pi-voice@0.1.0",
+      "kind": "npm",
+      "name": "@earendil-works/pi-voice",
+      "version": "0.1.0"
+    },
+    {
+      "source": "npm:@juicesharp/rpiv-ask-user-question@2.12.0",
+      "kind": "npm",
+      "name": "@juicesharp/rpiv-ask-user-question",
+      "version": "2.12.0"
+    },
+    {
+      "source": "npm:@juicesharp/rpiv-todo@2.12.0",
+      "kind": "npm",
+      "name": "@juicesharp/rpiv-todo",
+      "version": "2.12.0"
+    },
+    {
+      "source": "npm:pi-subagents@0.76.1",
+      "kind": "npm",
+      "name": "pi-subagents",
+      "version": "0.76.1"
+    },
+    {
+      "source": "npm:@jetserge/next-prompt@0.4.2",
+      "kind": "npm",
+      "name": "@jetserge/next-prompt",
+      "version": "0.4.2"
+    },
+    {
+      "source": "npm:pi-web-access@0.37.0",
+      "kind": "npm",
+      "name": "pi-web-access",
+      "version": "0.37.0"
+    },
+    {
+      "source": "npm:@narumitw/pi-statusline@0.50.2",
+      "kind": "npm",
+      "name": "@narumitw/pi-statusline",
+      "version": "0.50.2"
+    }
+  ]
+}

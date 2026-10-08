@@ -1,0 +1,23 @@
+{
+  "name": "pi-extensions",
+  "private": true,
+  "overrides": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/core": "2.3.1"
+  },
+  "dependencies": {
+    "@andrewjacop/pi-herdr": "0.6.0",
+    "@earendil-works/pi-voice": "0.1.0",
+    "@jetserge/next-prompt": "0.4.2",
+    "@juicesharp/rpiv-ask-user-question": "2.12.0",
+    "@juicesharp/rpiv-todo": "2.12.0",
+    "@narumitw/pi-statusline": "0.50.2",
+    "@rahularya01/pi-cursor": "^1.4.38",
+    "pi-blackhole": "0.5.11",
+    "pi-mcp-adapter": "5.1.0",
+    "pi-subagents": "0.76.1",
+    "pi-typesafe": "0.9.1",
+    "pi-web-access": "0.37.0"
+  }
+}
