@@ -129,6 +129,7 @@ run(process.execPath, ["verification/mcp.mjs", agentDir]);
 run(process.execPath, ["verification/research-paths.mjs", agentDir]);
 run(process.execPath, ["verification/profile.mjs", agentDir]);
 run("python3", ["verification/tui.py", agentDir, cli]);
+run("python3", ["verification/startup-errors.py", agentDir, cli]);
 run("npm", ["audit", "--audit-level=moderate"]);
 run("npm", [
   "--prefix",

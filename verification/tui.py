@@ -55,7 +55,7 @@ try:
     tm("new-session", "-d", "-s", LABEL, "-x", "120", "-y", "36", "-c", str(WORKSPACE), shlex.join(["env", "-i"] + [key + "=" + value for key, value in ENV.items()] + args))
     wait("startup", lambda e, s: any(x["event"] == "ready" for x in e) and "workspace" in s and "fixture" in s)
     command("Run synthetic fixture PLUMBING-TUI-7214.")
-    wait("ghost", lambda e, s: "Inspect the next test." in s and any(x["event"] == "settled" for x in e))
+    wait("ghost", lambda e, s: "Inspect the next test." in s and "TURN-COMPLETE" in s and any(x["event"] == "settled" for x in e))
     tm("resize-window", "-t", LABEL, "-x", "60", "-y", "36")
     wait("narrow-ghost", lambda e, s: "Inspect the next test." in s and any(x["event"] == "footer-render" and x["width"] == 60 for x in e))
     tm("send-keys", "-t", LABEL, "Escape", "/")

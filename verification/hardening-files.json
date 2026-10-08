@@ -23,6 +23,7 @@
   "extensions/statusline/tsconfig.json",
   "extensions/todo-replay/index.test.ts",
   "extensions/todo-replay/index.ts",
+  "extensions/ui-customization/index.test.ts",
   "extensions/ui-customization/index.ts",
   "next-prompt.json",
   "package.json",
