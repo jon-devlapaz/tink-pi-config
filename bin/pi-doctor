@@ -3,7 +3,7 @@ set -eu
 
 case "${1-}" in
   -h|--help)
-    printf '%s\n' 'Usage: pi-doctor' 'Verify Pi version pins, local extensions, types, tests, runtime/TUI behavior, and dependency security.' 'Uses isolated synthetic model fixtures; npm security audits contact the registry.'
+    printf '%s\n' 'Usage: pi-doctor' 'Verify Pi version pins, local extensions, types, tests, runtime/TUI behavior, and dependency security.' 'Defaults to the global Pi on PATH, excluding npm-local SDK binaries. PI_VERIFY_CLI selects an explicit executable.' 'Uses isolated synthetic model fixtures; npm security audits contact the registry.'
     exit 0
     ;;
 esac
@@ -22,4 +22,6 @@ while [ -L "$script" ]; do
   esac
 done
 repository=$(CDPATH= cd -P "$(dirname "$script")/.." && pwd)
+PI_VERIFY_CLI=$(node "$repository/verification/resolve-cli.mjs")
+export PI_VERIFY_CLI
 exec npm --prefix "$repository" run verify:updates

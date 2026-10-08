@@ -51,7 +51,7 @@ The easiest way to get this running is to let your AI coding agent do the legwor
 Please inspect my system and set up this Pi coding agent configuration:
 
 1. System Check:
-   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.0.4.
+   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.1.0.
    - Check if Homebrew is available (on macOS).
    - Check if `ripgrep` (`rg`), `fd`, `herdr`, `tmux`, and Python 3 are installed.
    - Ask before installing missing system tools using Homebrew (`brew install ripgrep fd herdr tmux`) or the platform equivalent.
@@ -84,7 +84,7 @@ Please inspect my system and set up this Pi coding agent configuration:
 Prefer running the commands yourself? Here is the quick walk-through:
 
 ### 1. Prerequisites
-Make sure you have Node 22.19+, Pi 1.0.4, Python 3, tmux, and the CLI utilities installed:
+Make sure you have Node 22.19+, Pi 1.1.0, Python 3, tmux, and the CLI utilities installed:
 
 ```bash
 # Verify Node version
@@ -140,11 +140,11 @@ mkdir -p ~/.local/bin
 ln -s "$PWD/bin/pi-doctor" ~/.local/bin/pi-doctor
 ```
 
-Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It checks source parity, tested Pi/plugin pins, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
+Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It resolves the global `pi` executable on PATH before npm changes PATH, excluding `node_modules/.bin` SDK binaries, and prints its absolute path. It checks source parity, tested Pi/plugin pins, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
 
 Pi may rewrite `settings.json` formatting; the doctor validates its parsed contents without treating whitespace churn as a code failure. For intentional upgrades, update the tested pins in `settings.json`, `verification/packages.json`, and the managed manifest/template together, keep the development SDK aligned with the Pi CLI, then rerun the doctor. Do not blindly run `npm audit fix`.
 
-The standard live location is `~/.pi/agent`. If you keep this repository elsewhere, link or synchronize the owned extensions and safe defaults into that live directory, preserving existing machine settings; the doctor rejects drift. `PI_VERIFY_AGENT_DIR` and `PI_VERIFY_CLI` select an alternate verification target, but research paths currently assume the standard live directory.
+The standard live location is `~/.pi/agent`. If you keep this repository elsewhere, link or synchronize the owned extensions and safe defaults into that live directory, preserving existing machine settings; the doctor rejects drift. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
 
 ### 5. Log in & Run
 The saved default uses `openai-codex` OAuth. Log into that provider (or select and authenticate another supported provider):

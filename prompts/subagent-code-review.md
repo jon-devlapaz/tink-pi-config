@@ -1,37 +1,20 @@
 ---
-description: Run a subagent review using the thermo-nuclear-code-quality-review skill
+description: Run a fresh-context, read-only subagent code review
 argument-hint: "[focus / specific files or commit]"
 ---
-Delegate a code review to a subagent running in a visible Herdr split pane with `meta/muse-spark-1.3-contributor`.
+Review the requested changes through the configured subagent runner.
 
-1. **Context & Diff**:
-   - Inspect git status and diff (`git status --short`, then `git diff --cached` or `git diff`).
-   - If specific commit or file arguments were provided in `${@}`, target those.
-   - If there is no active diff or repository, report "No changes found to review" and stop.
+1. **Scope**:
+   - Inspect `git status --short`, then the staged or unstaged diff. Apply specific commit or file arguments from `${@}`.
+   - If there is no repository or relevant diff, report "No changes found to review" and stop.
+   - Read the available `subagents` skill and its installed native pi-subagents reference. This review request authorizes one bounded reviewer, not recursive delegation.
 
-2. **Herdr Delegation**:
-   - Check `herdr_list_agents` first. If an agent named `reviewer` (or an idle review pane) already exists, steer it via `herdr_message_agent` and read the verdict with `herdr_get_agent_result`.
-   - If no reviewer exists, launch one with:
-     - `herdr_spawn_agent` with `name`: `"reviewer"`, `model`: `"meta/muse-spark-1.3-contributor"`, `thinking`: `"max"` (read-only review — instruct no edits in the prompt)
-     - then steer with `herdr_message_agent(target: "reviewer", text: ...)`
-   - Prompt format:
-     ```
-     You are performing a read-only code quality review. Make no edits.
+2. **Review**:
+   - Use a native Pi review role by default. Discover executable agent capabilities and use its configured authenticated model and thinking level. If no suitable read-only role is available, report the blocker; do not invent a provider/model or silently switch runners.
+   - Use Herdr only when visible panes are explicitly requested. Follow the subagents skill's reuse, isolation, and recovery rules.
+   - Give the reviewer fresh context: repository/cwd, exact file scope, relevant diff, acceptance criteria, and review focus from `${@}`. Exclude secrets and the implementation conversation.
+   - Require read-only work and no recursive delegation. Ask for correctness, security, maintainability, and missing regression coverage, with file/line evidence and severity. If a requested review skill is unavailable, report it rather than claiming it was applied.
 
-     MANDATORY FIRST STEP:
-     Use your `read` tool to read the skill at:
-     /Users/jondev/.pi/agent/skills/thermo-nuclear-code-quality-review/SKILL.md
-
-     Follow that skill completely. Apply its Core Prompt, Non-Negotiable Standards (0 through 7), Primary Review Questions, Aggressive Flags, and Review Tone to the changes below.
-
-     Target files and diff:
-     [Insert resolved git status and git diff here]
-
-     Review focus:
-     ${@:-Full thermo-nuclear code quality audit}
-
-     Structure your final report according to the skill's instructions.
-     ```
-
-3. **Synthesis**:
-   - Summarize the subagent's verdict and key structural findings back in this conversation.
+3. **Acceptance**:
+   - Retrieve the exact completed result through the owning runner. Check findings against the source and tests; distinguish verified defects from hypotheses.
+   - Report actionable findings and remaining coverage gaps. Make no edits unless separately requested.

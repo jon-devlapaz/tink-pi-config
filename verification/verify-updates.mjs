@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { getAgentDir, VERSION } from "@earendil-works/pi-coding-agent";
+import { resolveCli } from "./resolve-cli.mjs";
 import {
   checkPackages,
   packagePath,
@@ -12,7 +13,8 @@ import {
 } from "./sandbox.mjs";
 
 const agentDir = path.resolve(process.env.PI_VERIFY_AGENT_DIR ?? getAgentDir());
-const cli = process.env.PI_VERIFY_CLI ?? "pi";
+const cli = resolveCli();
+console.log("Verifying Pi executable:", cli);
 const overrides = readJson(
   path.join(repo, "verification/managed-npm.json"),
 ).overrides;
@@ -124,7 +126,12 @@ run(path.join(repo, "node_modules/.bin/prettier"), [
 ]);
 run("npm", ["run", "check"]);
 run("npm", ["test"]);
-run(process.execPath, ["--test", "verification/sandbox.test.mjs"]);
+run(process.execPath, [
+  "--test",
+  "verification/sandbox.test.mjs",
+  "verification/resolve-cli.test.mjs",
+  "verification/instructions.test.mjs",
+]);
 run(process.execPath, ["verification/mcp.mjs", agentDir]);
 run(process.execPath, ["verification/research-paths.mjs", agentDir]);
 run(process.execPath, ["verification/profile.mjs", agentDir]);

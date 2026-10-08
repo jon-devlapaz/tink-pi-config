@@ -1,5 +1,5 @@
 {
-  "hostVersion": "1.0.4",
+  "hostVersion": "1.1.0",
   "packages": [
     {
       "source": "npm:pi-blackhole@0.5.11",

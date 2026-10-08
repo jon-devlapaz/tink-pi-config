@@ -31,16 +31,13 @@
 
 ## Subagents & Delegation
 
-- **Session mode:** default `standalone` with a self-contained prompt. Use `fork: true` only when the task needs discussion context — fork replays the whole conversation into the child (context-copy tax, grows with session size).
-- **Model tiering:** workers default cheap (`freellmapi/auto:fast` or equivalent); escalate to `meta/muse-spark-1.3-contributor` + `max` only with cause (hard reasoning, code changes). Supervisor keeps the frontier model.
-- **No recursive delegation:** workers must not spawn their own workers. One level only; fan-out needed → ask supervisor.
-- **Herdr for standing visual agents:** standing roles or tasks needing interactive monitoring run in visible split panes via `herdr_spawn_agent` (model/thinking per tiering above).
-- **Reuse existing panes:** Check `herdr_list_agents` before spawning. Steer an existing idle agent (`herdr_message_agent` -> `herdr_get_agent_result`) instead of creating sibling panes. Redirect a working agent with `herdr_interrupt_agent` then `herdr_message_agent`; recover a gone one with `herdr_resume_agent`.
-- **No pane accumulation:** Maintain at most two standing subagents (e.g. `worker` and `reviewer`). Spawned agents are autonomous by default (auto-exit on settle, pane closes, session retained) — that is the one-shot hygiene; keep panes only for standing roles.
-- **Plane decision tree:** standing/visible roles → Herdr panes; bounded parallel fan-out → `workflow` (`agent()` never throws, always check `.ok`); shell-only long-lived commands → background-terminals (not agents); playbooks → pstack. Parallel writers sharing a cwd → `isolated: true` worktrees.
-- **Completion contract:** every worker final message states what changed, validation output, and open decisions. Never finish empty — an empty finish strands the supervisor.
-- **Fresh-context review:** code-change reviewers spawn standalone with spec + diff only, never forked history (a forked reviewer inherits the author's blind spots).
-- **Session hygiene:** no secrets in chat — fork replicates history into every worker session file under `~/.pi/agent/sessions/`, retained indefinitely. Prune `sessions/` and `workflows/` artifacts periodically.
+- Delegate only when the current request or applicable instructions authorize it. Direct execution is the default; complexity and tool availability are not authorization.
+- Before authorized delegation, read [the subagents skill](skills/subagents/SKILL.md). It owns runner selection, model routing, lifecycle, recovery, and privacy rules.
+- Use configured native Pi roles for ordinary delegation and coordinated workflows. Use Herdr when the operator explicitly requests visible panes. Respect configured role models and thinking; resolve overrides through authenticated model discovery rather than hard-coded provider names.
+- Keep delegation bounded and non-recursive. Use one writer per working tree and separate worktrees for concurrent writers.
+- Start independent reviewers with fresh context and a self-contained specification plus diff. Fork only when inherited history is necessary and safe to share.
+- Require each child to report changes, validation results, and unresolved decisions; verify its evidence before accepting the result.
+- Keep shell-only long-lived work in background terminals. Preserve retained sessions and worktrees until cleanup is explicitly authorized.
 
 
 ## Correctness
