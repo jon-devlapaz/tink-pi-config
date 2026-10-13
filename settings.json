@@ -31,10 +31,6 @@
       "source": "npm:@andrewjacop/pi-herdr@0.6.0",
       "extensions": []
     },
-    {
-      "source": "npm:pi-mcp-adapter@5.1.0",
-      "extensions": []
-    },
     "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
     "npm:@earendil-works/pi-voice@0.1.0",
     "npm:@juicesharp/rpiv-ask-user-question@2.12.0",
@@ -42,15 +38,10 @@
       "source": "npm:@juicesharp/rpiv-todo@2.12.0",
       "extensions": []
     },
-    "npm:pi-subagents@0.76.1",
+    "npm:pi-subagents@0.78.0",
     "npm:@jetserge/next-prompt@0.4.2",
     {
-      "source": "npm:pi-web-access@0.37.0",
-      "extensions": []
-    },
-    {
-      "source": "npm:@narumitw/pi-statusline@0.50.2",
-      "extensions": []
+      "source": "npm:pi-web-access@0.40.0"
     }
   ],
   "extensions": [

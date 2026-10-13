@@ -1,0 +1,39 @@
+{
+  "searchRouting": {
+    "providers": ["exa", "duckduckgo"],
+    "useCurrentModel": false,
+    "fallbackOn": [
+      "unsupported",
+      "transient",
+      "quota",
+      "network",
+      "invalid-response"
+    ]
+  },
+  "webSearch": {
+    "allowedProviders": ["exa", "duckduckgo"]
+  },
+  "fetchRouting": {
+    "providers": ["http"],
+    "allowRemoteHostedProviders": false
+  },
+  "fetch": {
+    "allowedModes": ["readable", "raw"]
+  },
+  "toolActivation": "eager",
+  "workflow": "none",
+  "allowBrowserCookies": false,
+  "autoOpenBrowser": false,
+  "githubClone": {
+    "enabled": false
+  },
+  "youtube": {
+    "enabled": false
+  },
+  "video": {
+    "enabled": false
+  },
+  "image": {
+    "enabled": false
+  }
+}

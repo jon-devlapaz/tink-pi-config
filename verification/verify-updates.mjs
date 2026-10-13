@@ -81,12 +81,27 @@ for (const [name, version] of Object.entries(overrides)) {
     version,
     "restore managed security overrides from verification/managed-npm.json before reinstalling plugins",
   );
-  assert.equal(
-    readJson(path.join(agentDir, "npm/node_modules", name, "package.json"))
-      .version,
-    version,
-    name + ": installed security override mismatch",
+  const installed = path.join(
+    agentDir,
+    "npm/node_modules",
+    name,
+    "package.json",
   );
+  if (fs.existsSync(installed)) {
+    assert.equal(
+      readJson(installed).version,
+      version,
+      name + ": installed security override mismatch",
+    );
+  } else {
+    assert(
+      ["@modelcontextprotocol/client", "@modelcontextprotocol/core"].includes(
+        name,
+      ),
+      name + ": required security override package is missing",
+    );
+    console.log("SKIP unused adapter security override:", name);
+  }
 }
 for (const pin of pins.packages.filter((pin) => pin.kind === "npm")) {
   assert.equal(
@@ -110,6 +125,7 @@ for (const folder of ownedFolders) {
 for (const relative of [
   "next-prompt.json",
   "pi-blackhole/pi-blackhole-config.json",
+  "web-search.json",
 ]) {
   assert.deepEqual(
     readJson(path.join(agentDir, relative)),

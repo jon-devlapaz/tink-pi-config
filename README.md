@@ -1,6 +1,6 @@
 # tink-pi-config
 
-Hey! If you use [Pi](https://github.com/badlogic/pi-mono) as your coding agent, this is a ready-to-roll configuration that turns it into a serious daily driver. No endless tweaking required—just clone it, install dependencies, and get back to writing code.
+Hey! If you use [Pi](https://github.com/earendil-works/pi) as your coding agent, this is a ready-to-roll configuration that turns it into a serious daily driver. No endless tweaking required—just clone it, install dependencies, and get back to writing code.
 
 ---
 
@@ -8,7 +8,8 @@ Hey! If you use [Pi](https://github.com/badlogic/pi-mono) as your coding agent, 
 
 Here is what makes this setup awesome:
 
-* **Subagents:** Native delegation uses `/subagents`; optional visible Herdr panes use `/herdr-config`. Research providers load only in the researcher and evidence-auditor children.
+* **Subagents:** Native delegation uses `/subagents`; optional visible Herdr panes use `/herdr-config`.
+* **Web access:** Web tools load globally. [web-search.json](web-search.json) restricts search to Exa/DuckDuckGo and fetching to direct HTTP; generated summaries, browser-cookie access, browser auto-open, GitHub cloning, and video/image features are off.
 * **⚡ Background Commands (`bg_start`):** Need to spin up a dev server, run a test watcher, or kick off a long build? The agent runs it in the background, keeps chatting and coding with you, and notifies you when the command finishes. You can inspect logs or kill processes anytime with `/ps`.
 * **🔍 Lightning-Fast Search (`fd` & `rg`):** Blazing-fast file finding and code search powered by native `fd` and `ripgrep`. It respects `.gitignore` automatically so your agent doesn't waste time rummaging through `node_modules` or build artifacts.
 * **🧠 Clean Memory & Context Tracking:** Smart context tracking keeps token bloat under control. Your agent stays sharp and doesn't forget important decisions or drown in chat history.
@@ -21,6 +22,7 @@ Here is what makes this setup awesome:
 .
 ├── AGENTS.md                 # Agent instructions (style, safety, git rules)
 ├── settings.json             # Core Pi configuration and plugin registry
+├── web-search.json           # Credential-free web safety defaults
 ├── models.json.example       # Template for custom/local OpenAI & Gemini models
 ├── bin/pi-doctor             # Post-update diagnostic command
 ├── extensions/               # Custom TypeScript extensions
@@ -51,7 +53,7 @@ The easiest way to get this running is to let your AI coding agent do the legwor
 Please inspect my system and set up this Pi coding agent configuration:
 
 1. System Check:
-   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.1.0.
+   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.2.0.
    - Check if Homebrew is available (on macOS).
    - Check if `ripgrep` (`rg`), `fd`, `herdr`, `tmux`, and Python 3 are installed.
    - Ask before installing missing system tools using Homebrew (`brew install ripgrep fd herdr tmux`) or the platform equivalent.
@@ -59,7 +61,7 @@ Please inspect my system and set up this Pi coding agent configuration:
 2. Install Configuration:
    - Target folder is `~/.pi/agent`.
    - If `~/.pi/agent` already exists and has uncommitted changes, back it up first (e.g. `~/.pi/agent.backup.<timestamp>`).
-   - Clone this configuration repo to `~/.pi/agent` (or copy these files into `~/.pi/agent`).
+   - Clone this configuration repo to `~/.pi/agent` (or synchronize these files into it). Include `web-search.json`; review existing settings before replacing them. Keep credentials out of this tracked file.
    - Navigate to `~/.pi/agent` and run:
      ```bash
      npm ci
@@ -84,7 +86,7 @@ Please inspect my system and set up this Pi coding agent configuration:
 Prefer running the commands yourself? Here is the quick walk-through:
 
 ### 1. Prerequisites
-Make sure you have Node 22.19+, Pi 1.1.0, Python 3, tmux, and the CLI utilities installed:
+Make sure you have Node 22.19+, Pi 1.2.0, Python 3, tmux, and the CLI utilities installed:
 
 ```bash
 # Verify Node version
@@ -144,7 +146,7 @@ Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi
 
 Pi may rewrite `settings.json` formatting; the doctor validates its parsed contents without treating whitespace churn as a code failure. For intentional upgrades, update the tested pins in `settings.json`, `verification/packages.json`, and the managed manifest/template together, keep the development SDK aligned with the Pi CLI, then rerun the doctor. Do not blindly run `npm audit fix`.
 
-The standard live location is `~/.pi/agent`. If you keep this repository elsewhere, link or synchronize the owned extensions and safe defaults into that live directory, preserving existing machine settings; the doctor rejects drift. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
+The standard live location is `~/.pi/agent`. If you keep this repository elsewhere, link or synchronize the owned extensions and safe defaults, including `web-search.json`, into that live directory after reviewing existing machine settings; the doctor rejects drift. Keep provider credentials in per-machine environment variables, not in the tracked web defaults. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
 
 ### 5. Log in & Run
 The saved default uses `openai-codex` OAuth. Log into that provider (or select and authenticate another supported provider):

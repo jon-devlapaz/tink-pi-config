@@ -111,6 +111,7 @@ export function createSandbox(agentDir) {
   for (const relative of [
     "next-prompt.json",
     "pi-blackhole/pi-blackhole-config.json",
+    "web-search.json",
   ]) {
     const target = path.join(config, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });

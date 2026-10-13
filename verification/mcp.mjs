@@ -9,19 +9,13 @@ const { Server } = await load(
 const { Client: Client1 } = await load(
   "@modelcontextprotocol/sdk/dist/esm/client/index.js",
 );
-const { Client: Client2 } = await load(
-  "@modelcontextprotocol/client/dist/index.mjs",
-);
 const { InMemoryTransport } = await load(
   "@modelcontextprotocol/sdk/dist/esm/inMemory.js",
 );
 const { ListToolsRequestSchema, CallToolRequestSchema } = await load(
   "@modelcontextprotocol/sdk/dist/esm/types.js",
 );
-for (const [name, Client] of [
-  ["sdk", Client1],
-  ["client", Client2],
-]) {
+for (const [name, Client] of [["sdk", Client1]]) {
   const server = new Server(
     { name: "offline-fixture", version: "1.0.0" },
     { capabilities: { tools: {} } },

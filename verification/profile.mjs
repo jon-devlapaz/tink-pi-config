@@ -98,7 +98,7 @@ const loaded = loader.getExtensions();
 assert.equal(loaded.errors.length, 0, JSON.stringify(loaded.errors));
 assert(
   !loaded.extensions.some((e) =>
-    /pi-pstack|\/model-info\/|\/summaries\/|\/spark-strict-tools\/|\/pi-mcp-adapter\/|\/@narumitw\/pi-statusline\/|\/pi-web-access\//.test(
+    /pi-pstack|\/model-info\/|\/summaries\/|\/spark-strict-tools\/|\/pi-mcp-adapter\/|\/@narumitw\/pi-statusline\//.test(
       e.path,
     ),
   ),
@@ -108,6 +108,17 @@ assert(
   !loader.getSkills().skills.some((s) => s.filePath.includes("pi-pstack")),
   "pstack skills loaded",
 );
+const web = loaded.extensions.find((extension) =>
+  extension.path.includes("/pi-web-access/"),
+);
+assert(web, "globally enabled web-access extension did not load");
+for (const tool of [
+  "web_search",
+  "source_check",
+  "fetch_content",
+  "get_search_content",
+])
+  assert(web.tools.has(tool), "missing globally enabled web tool: " + tool);
 const checks = [];
 const errors = [];
 const notifications = [];

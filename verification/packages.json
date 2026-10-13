@@ -1,5 +1,5 @@
 {
-  "hostVersion": "1.1.0",
+  "hostVersion": "1.2.0",
   "packages": [
     {
       "source": "npm:pi-blackhole@0.5.11",
@@ -26,12 +26,6 @@
       "version": "0.6.0"
     },
     {
-      "source": "npm:pi-mcp-adapter@5.1.0",
-      "kind": "npm",
-      "name": "pi-mcp-adapter",
-      "version": "5.1.0"
-    },
-    {
       "source": "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
       "kind": "git",
       "path": "github.com/helloHupc/pi-git-commands",
@@ -56,10 +50,10 @@
       "version": "2.12.0"
     },
     {
-      "source": "npm:pi-subagents@0.76.1",
+      "source": "npm:pi-subagents@0.78.0",
       "kind": "npm",
       "name": "pi-subagents",
-      "version": "0.76.1"
+      "version": "0.78.0"
     },
     {
       "source": "npm:@jetserge/next-prompt@0.4.2",
@@ -68,16 +62,10 @@
       "version": "0.4.2"
     },
     {
-      "source": "npm:pi-web-access@0.37.0",
+      "source": "npm:pi-web-access@0.40.0",
       "kind": "npm",
       "name": "pi-web-access",
-      "version": "0.37.0"
-    },
-    {
-      "source": "npm:@narumitw/pi-statusline@0.50.2",
-      "kind": "npm",
-      "name": "@narumitw/pi-statusline",
-      "version": "0.50.2"
+      "version": "0.40.0"
     }
   ]
 }
