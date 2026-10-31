@@ -7,7 +7,6 @@
     "@modelcontextprotocol/core": "2.3.1"
   },
   "dependencies": {
-    "@andrewjacop/pi-herdr": "0.6.0",
     "@earendil-works/pi-voice": "0.1.0",
     "@jetserge/next-prompt": "0.4.2",
     "@juicesharp/rpiv-ask-user-question": "2.12.0",

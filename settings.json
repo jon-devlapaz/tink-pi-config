@@ -27,10 +27,6 @@
     "npm:pi-blackhole@0.5.11",
     "git:github.com/earendil-works/pi-review@f1de050504936046c0f85b21fec0e0a93ef394eb",
     "npm:pi-typesafe@0.9.1",
-    {
-      "source": "npm:@andrewjacop/pi-herdr@0.6.0",
-      "extensions": []
-    },
     "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
     "npm:@earendil-works/pi-voice@0.1.0",
     "npm:@juicesharp/rpiv-ask-user-question@2.12.0",
@@ -46,7 +42,10 @@
   ],
   "extensions": [
     "+builtin:mcp",
-    "-extensions/model-info/index.ts"
+    "-extensions/model-info/index.ts",
+    "-extensions/herdr-commands/index.ts",
+    "-extensions/herdr-naming/index.ts",
+    "-extensions/herdr-agent-state.ts"
   ],
   "subagents": {
     "defaultThinking": "high",

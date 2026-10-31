@@ -147,6 +147,7 @@ run(process.execPath, [
   "verification/sandbox.test.mjs",
   "verification/resolve-cli.test.mjs",
   "verification/instructions.test.mjs",
+  "verification/retired-packages.test.mjs",
 ]);
 run(process.execPath, ["verification/mcp.mjs", agentDir]);
 run(process.execPath, ["verification/research-paths.mjs", agentDir]);

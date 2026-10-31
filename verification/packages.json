@@ -20,12 +20,6 @@
       "version": "0.9.1"
     },
     {
-      "source": "npm:@andrewjacop/pi-herdr@0.6.0",
-      "kind": "npm",
-      "name": "@andrewjacop/pi-herdr",
-      "version": "0.6.0"
-    },
-    {
       "source": "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
       "kind": "git",
       "path": "github.com/helloHupc/pi-git-commands",
