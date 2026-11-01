@@ -1,29 +1,16 @@
 ---
 name: background-terminals
-description: Run and manage long-lived shell commands in background terminals. Use for dev servers, watchers, streaming builds, and other commands that should keep running while the agent continues working.
+description: Manage persistent shell jobs with herdr-core. Use for dev servers, watchers, streaming builds, and commands that must keep running while work continues.
 ---
 
-# Background Terminals
+# Persistent programs
 
-Use `bg_start` for long-running commands; use regular `bash` for quick commands.
+Read `hc --skill` before running long-lived programs. Use ordinary `bash` for quick commands.
 
-## Start
+1. Inspect task-owned terminals with `hc ls` to avoid duplicate jobs.
+2. Start noninteractive jobs with `hc run --bg --name <useful-name> --cwd <directory> <program> <args...>`. A single quoted command is a shell command; prefer separate argv when shell syntax is unnecessary.
+3. Continue other work. Use `hc wait <terminal> --output <ready-marker>` for readiness or `hc wait <terminal>` for completion, then `hc read <terminal>` for actual output. A timeout leaves the job running; use its returned address rather than launching another copy.
+4. Show a job with `herdr-app` only when visibility is requested; read `herdr-app --skill` and use explicit returned IDs. Unlabeled jobs remain outside the window.
+5. After results are accepted, stop/remove only task-owned jobs with `hc kill` and `hc rm`. Preserve requested logs and artifacts. Never stop the user's core or unrelated terminals.
 
-Call `bg_start` with:
-
-- `command`: shell command to run
-- `title`: short recognizable label
-- `working_dir`: project directory when different from the current directory
-
-Background commands receive no stdin. Never use them for interactive prompts.
-
-After starting, continue useful work instead of polling. The terminal sends one completion message when it exits.
-
-## Inspect and stop
-
-- Use `bg_status` only when current output or status is needed.
-- Use `bg_list` to inventory all tracked terminals.
-- Use `bg_kill` when a process is no longer needed or is stuck; termination continues even if the tool wait is aborted.
-- Tell the user they can open `/ps` to inspect live output and kill terminals interactively.
-
-Prefer meaningful titles and avoid starting duplicate servers or watchers. Full output is captured to spill files; tool and completion output shows a concise tail. Terminals are session-scoped and are stopped during shutdown or reload.
+A window closing does not end core terminals. Parent-child lifetime is separate: use `--outlive-parent` only when the user explicitly requests independence from the launching agent. Use interactive Pi for agent workers, following the subagents skill; shell jobs are not agent delegation.

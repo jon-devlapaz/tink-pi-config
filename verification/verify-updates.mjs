@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
-import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { getAgentDir, VERSION } from "@earendil-works/pi-coding-agent";
 import { resolveCli } from "./resolve-cli.mjs";
 import {
+  checkManagedPackages,
   checkPackages,
-  packagePath,
   pins,
   readJson,
   repo,
@@ -15,29 +14,6 @@ import {
 const agentDir = path.resolve(process.env.PI_VERIFY_AGENT_DIR ?? getAgentDir());
 const cli = resolveCli();
 console.log("Verifying Pi executable:", cli);
-const overrides = readJson(
-  path.join(repo, "verification/managed-npm.json"),
-).overrides;
-const ownedFolders = [
-  "git-info",
-  "herdr-commands",
-  "herdr-naming",
-  "session-rotation",
-  "statusline",
-  "todo-replay",
-  "ui-customization",
-];
-
-export function files(root) {
-  return fs.readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
-    if (["node_modules", "dist", ".git"].includes(entry.name)) return [];
-    const file = path.join(root, entry.name);
-    if (entry.isDirectory()) return files(file);
-    return /\.(ts|cjs)$/.test(entry.name) || entry.name === "tsconfig.json"
-      ? [file]
-      : [];
-  });
-}
 
 function run(program, args, timeout = 180000) {
   console.log("\n>", program, ...args);
@@ -68,65 +44,28 @@ for (const name of [
     "development packages must remain aligned and pinned",
   );
 }
-assert.deepEqual(
-  readJson(path.join(agentDir, "settings.json")),
-  readJson(path.join(repo, "settings.json")),
-  "live settings differ from canonical configuration",
-);
-checkPackages(agentDir);
+const template = readJson(path.join(repo, "settings.json"));
+const live = readJson(path.join(agentDir, "settings.json"));
+for (const key of [
+  "packages",
+  "extensions",
+  "defaultTools",
+  "defaultProjectTrust",
+])
+  assert.deepEqual(
+    live[key],
+    template[key],
+    key + ": live infrastructure settings differ",
+  );
+checkPackages(agentDir, live);
 const managed = readJson(path.join(agentDir, "npm/package.json"));
-for (const [name, version] of Object.entries(overrides)) {
-  assert.equal(
-    managed.overrides?.[name],
-    version,
-    "restore managed security overrides from verification/managed-npm.json before reinstalling plugins",
-  );
-  const installed = path.join(
-    agentDir,
-    "npm/node_modules",
-    name,
-    "package.json",
-  );
-  if (fs.existsSync(installed)) {
-    assert.equal(
-      readJson(installed).version,
-      version,
-      name + ": installed security override mismatch",
-    );
-  } else {
-    assert(
-      ["@modelcontextprotocol/client", "@modelcontextprotocol/core"].includes(
-        name,
-      ),
-      name + ": required security override package is missing",
-    );
-    console.log("SKIP unused adapter security override:", name);
-  }
-}
-for (const pin of pins.packages.filter((pin) => pin.kind === "npm")) {
-  assert.equal(
-    managed.dependencies[pin.name],
-    pin.version,
-    pin.name + ": managed manifest must preserve tested pin",
-  );
-  assert(fs.existsSync(packagePath(pin, agentDir)));
-}
-for (const folder of ownedFolders) {
-  const source = path.join(repo, "extensions", folder);
-  for (const file of files(source)) {
-    const relative = path.relative(repo, file);
-    assert.equal(
-      fs.readFileSync(path.join(agentDir, relative), "utf8"),
-      fs.readFileSync(file, "utf8"),
-      relative + ": live code differs from canonical copy",
-    );
-  }
-}
-for (const relative of [
-  "next-prompt.json",
-  "pi-blackhole/pi-blackhole-config.json",
-  "web-search.json",
-]) {
+checkManagedPackages(managed);
+assert.equal(
+  managed.overrides,
+  undefined,
+  "installed extensions must use upstream dependencies without local overrides",
+);
+for (const relative of ["next-prompt.json", "web-search.json"]) {
   assert.deepEqual(
     readJson(path.join(agentDir, relative)),
     readJson(path.join(repo, relative)),
@@ -134,7 +73,7 @@ for (const relative of [
   );
 }
 console.log(
-  "PASS installed version pins, source parity, and managed security overrides",
+  "PASS host version, floating upstream packages, and infrastructure settings",
 );
 run(path.join(repo, "node_modules/.bin/prettier"), [
   "--check",
@@ -142,13 +81,8 @@ run(path.join(repo, "node_modules/.bin/prettier"), [
 ]);
 run("npm", ["run", "check"]);
 run("npm", ["test"]);
-run(process.execPath, [
-  "--test",
-  "verification/sandbox.test.mjs",
-  "verification/resolve-cli.test.mjs",
-  "verification/instructions.test.mjs",
-  "verification/retired-packages.test.mjs",
-]);
+run("python3", ["verification/probe-cleanup.test.py"]);
+run("python3", ["verification/hc-smoke.py"], 90000);
 run(process.execPath, ["verification/mcp.mjs", agentDir]);
 run(process.execPath, ["verification/research-paths.mjs", agentDir]);
 run(process.execPath, ["verification/profile.mjs", agentDir]);

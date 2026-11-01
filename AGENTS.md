@@ -1,9 +1,15 @@
 # Global instructions
 
+## Pi infrastructure changes
+
+- Get the user's explicit permission for that scope before changing `tink-pi-config`, live Pi configuration, or any installed Pi/extension code. General project work is not permission.
+- Use unmodified upstream packages. Creating, patching, or introducing extensions, shims, wrappers, provider/workflow glue, or dependency overrides also requires explicit permission. Report upstream limitations and ask instead of adding workarounds.
+- Normal Pi preference/session writes and the approved nightly upstream update are expected runtime operations, not permission for agent-initiated infrastructure edits or changes to the approved package list.
+
 ## Environment
 
 - macOS, Apple Silicon, zsh, Homebrew at /opt/homebrew.
-- `fd` is at ~/.pi/agent/bin/fd. Prefer ripgrep/fd over find/grep when available.
+- Use Pi’s built-in `find`, `grep`, and `ls`; use system `fd`/`rg` through `bash` for advanced shell searches.
 - Keep shell commands non-interactive; never assume sudo.
 
 ## Style
@@ -33,11 +39,11 @@
 
 - Delegate only when the current request or applicable instructions authorize it. Direct execution is the default; complexity and tool availability are not authorization.
 - Before authorized delegation, read [the subagents skill](skills/subagents/SKILL.md). It owns runner selection, model routing, lifecycle, recovery, and privacy rules.
-- Use configured native Pi roles for ordinary delegation and coordinated workflows. Use Herdr when the operator explicitly requests visible panes. Respect configured role models and thinking; resolve overrides through authenticated model discovery rather than hard-coded provider names.
+- Herdr Desktop is the home for visible, persistent agents. Use `hc` for all authorized agent/program orchestration and `herdr-app` for window control; read their `--skill` manuals first. Use configured templates or authenticated Pi defaults rather than inventing model flags.
 - Keep delegation bounded and non-recursive. Use one writer per working tree and separate worktrees for concurrent writers.
 - Start independent reviewers with fresh context and a self-contained specification plus diff. Fork only when inherited history is necessary and safe to share.
 - Require each child to report changes, validation results, and unresolved decisions; verify its evidence before accepting the result.
-- Keep shell-only long-lived work in background terminals. Preserve retained sessions and worktrees until cleanup is explicitly authorized.
+- Keep long-lived programs in `hc` terminals. Pi owns ordinary coding tools and native status/title reporting; Desktop owns orchestration and visibility. Preserve retained sessions and worktrees until cleanup is explicitly authorized.
 
 
 ## Correctness

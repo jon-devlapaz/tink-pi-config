@@ -8,11 +8,11 @@ Hey! If you use [Pi](https://github.com/earendil-works/pi) as your coding agent,
 
 Here is what makes this setup awesome:
 
-* **Subagents:** Native delegation uses `/subagents`; optional visible Herdr panes use `/herdr-config`.
+* **Herdr Core-native agents:** Herdr Core runs persistent agents and programs through `hc`; Herdr Desktop shows them, with `herdr-app` controlling their window placement. Pi supplies coding tools and native OSC 7501 status/title reporting, without internal subagent, workflow, side-agent, or inspector layers.
 * **Web access:** Web tools load globally. [web-search.json](web-search.json) restricts search to Exa/DuckDuckGo and fetching to direct HTTP; generated summaries, browser-cookie access, browser auto-open, GitHub cloning, and video/image features are off.
-* **⚡ Background Commands (`bg_start`):** Need to spin up a dev server, run a test watcher, or kick off a long build? The agent runs it in the background, keeps chatting and coding with you, and notifies you when the command finishes. You can inspect logs or kill processes anytime with `/ps`.
-* **🔍 Lightning-Fast Search (`fd` & `rg`):** Blazing-fast file finding and code search powered by native `fd` and `ripgrep`. It respects `.gitignore` automatically so your agent doesn't waste time rummaging through `node_modules` or build artifacts.
-* **🧠 Clean Memory & Context Tracking:** Smart context tracking keeps token bloat under control. Your agent stays sharp and doesn't forget important decisions or drown in chat history.
+* **Persistent programs:** Start servers, watchers, and long builds with `hc run --bg`, collect output with `hc read`, and wait with `hc wait`. Desktop visibility is explicit; Pi does not maintain a second terminal dashboard or automatically rotate/delete shared session history.
+* **Stock search:** Pi’s built-in `find`, `grep`, and `ls` tools are enabled. File and content searches respect `.gitignore`; system `fd` and `ripgrep` remain available through `bash` for advanced flags. No custom search extension is required.
+* **Native session history:** Pi’s own compaction and saved-session handling manage context, without a custom history-rewriting or recall extension.
 
 ---
 
@@ -25,19 +25,7 @@ Here is what makes this setup awesome:
 ├── web-search.json           # Credential-free web safety defaults
 ├── models.json.example       # Template for custom/local OpenAI & Gemini models
 ├── bin/pi-doctor             # Post-update diagnostic command
-├── extensions/               # Custom TypeScript extensions
-│   ├── background-terminals/ # Long-running process manager & /ps viewer
-│   ├── copy-all/             # /copy-all slash command
-│   ├── file-search/          # Native fd and ripgrep integration
-│   ├── git-info/             # Git status and branch viewer (/lg, /pr)
-│   ├── model-info/           # Legacy metrics (disabled)
-│   ├── statusline/           # Quiet attention-first footer
-│   ├── todo-replay/          # Durable nested todo persistence
-│   ├── herdr-commands/       # Herdr/native command separation
-│   ├── herdr-naming/         # Collision-safe pane identity
-│   ├── ui-customization/     # Quiet header, title, and theme styling
-│   └── workflows/            # Multi-agent workflow runner
-├── verification/             # Tested package pins and isolated smoke tests
+├── verification/             # Package sources and isolated smoke tests
 ├── prompts/                  # Reusable prompts (/commit-msg, /jevify)
 ├── skills/                   # On-demand agent skills (subagents, terminals)
 └── themes/                   # Clean terminal themes (github-dark, nord)
@@ -53,22 +41,17 @@ The easiest way to get this running is to let your AI coding agent do the legwor
 Please inspect my system and set up this Pi coding agent configuration:
 
 1. System Check:
-   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.2.0.
+   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.4.0.
    - Check if Homebrew is available (on macOS).
-   - Check if `ripgrep` (`rg`), `fd`, `herdr`, `tmux`, and Python 3 are installed.
-   - Ask before installing missing system tools using Homebrew (`brew install ripgrep fd herdr tmux`) or the platform equivalent.
+   - Check if `ripgrep` (`rg`), `fd`, `tmux`, Python 3, `hc`, and `herdr-app` are installed. Herdr Desktop supplies the agent/program runtime; the verifier requires `hc`.
+   - Ask before installing missing system tools using Homebrew (`brew install ripgrep fd tmux`) or the platform equivalent. Install Herdr Desktop separately; the legacy `herdr` CLI is not a substitute.
 
 2. Install Configuration:
-   - Target folder is `~/.pi/agent`.
-   - If `~/.pi/agent` already exists and has uncommitted changes, back it up first (e.g. `~/.pi/agent.backup.<timestamp>`).
-   - Clone this configuration repo to `~/.pi/agent` (or synchronize these files into it). Include `web-search.json`; review existing settings before replacing them. Keep credentials out of this tracked file.
-   - Navigate to `~/.pi/agent` and run:
-     ```bash
-     npm ci
-     npm --prefix extensions/file-search ci
-     ```
-   - For a fresh installation, seed `~/.pi/agent/npm/package.json` from `verification/managed-npm.json` before installing plugins. This retains tested plugin versions and MCP security overrides. If a managed manifest already exists, merge the overrides and matching pinned dependencies; do not overwrite unrelated entries.
-   - Install the managed npm dependencies with `npm --prefix ~/.pi/agent/npm install --omit=peer --ignore-scripts`, then start Pi to resolve the configured pinned Git packages.
+   - Keep this repository checkout separate from the live `~/.pi/agent` directory. Back up existing live settings before changing them; preserve credentials, model configuration, and sessions.
+   - Copy or merge approved settings and safe defaults into the live directory. Keep live `settings.json` a regular file, not a symlink into the checkout. Include `web-search.json` and the explicit-permission policy in `AGENTS.md`.
+   - Run `npm ci` in the source checkout for verification dependencies only.
+   - Install configured upstream packages with `PI_CODING_AGENT_DIR="$HOME/.pi/agent" pi update --extensions --no-approve`. Package sources are unpinned; copy-all and git-info come from their standalone GitHub repositories, not local extension copies. Do not introduce local dependency overrides.
+   - Copy or merge desired skills, prompts, and themes separately after review.
    - Link `bin/pi-doctor` into a directory on PATH (for example `~/.local/bin`). Do not overwrite an existing command.
 
 3. Verification:
@@ -86,7 +69,7 @@ Please inspect my system and set up this Pi coding agent configuration:
 Prefer running the commands yourself? Here is the quick walk-through:
 
 ### 1. Prerequisites
-Make sure you have Node 22.19+, Pi 1.2.0, Python 3, tmux, and the CLI utilities installed:
+Make sure you have Node 22.19+, Pi 1.4.0, Python 3, tmux, and the CLI utilities installed. Herdr Desktop must supply `hc` and `herdr-app`; `hc` is required by the isolated core verification:
 
 ```bash
 # Verify Node version
@@ -94,43 +77,54 @@ node -v   # Should be v22.19.0 or higher
 pi --version
 
 # macOS (Homebrew)
-brew install ripgrep fd herdr tmux
+brew install ripgrep fd tmux
 ```
 
-### 2. Install to `~/.pi/agent`
-Pi reads its user config and extensions from `~/.pi/agent`:
+This repository does not patch Herdr Desktop itself. The tested macOS Desktop 0.1.11 needed a separate window-reopen fix; verify close/reopen behavior on your installed Desktop build.
+
+### 2. Separate source and runtime
+
+Keep the checkout outside `~/.pi/agent`, where Pi stores its live settings and installed upstream packages. Existing users should back up and detach any live settings symlink before updating; preserve auth, models, and session history.
 
 ```bash
-# Clone the repository
-git clone https://github.com/jon-devlapaz/tink-pi-config.git ~/.pi/agent
-cd ~/.pi/agent
-
-# Install dependencies
+mkdir -p ~/dev/tools
+git clone https://github.com/jon-devlapaz/tink-pi-config.git ~/dev/tools/tink-pi-config
+cd ~/dev/tools/tink-pi-config
 npm ci
-npm --prefix extensions/file-search ci
 
-mkdir -p npm
-if [ -e npm/package.json ]; then
-  printf '%s\n' "Existing managed manifest: merge the template overrides and pins before reinstalling."
+mkdir -p "$HOME/.pi/agent"
+for file in settings.json web-search.json next-prompt.json AGENTS.md; do
+  if [ ! -e "$HOME/.pi/agent/$file" ]; then
+    cp "$file" "$HOME/.pi/agent/$file"
+  fi
+done
+
+if [ ! -L "$HOME/.pi/agent/settings.json" ]; then
+  PI_CODING_AGENT_DIR="$HOME/.pi/agent" pi update --extensions --no-approve
 else
-  cp verification/managed-npm.json npm/package.json
-  npm --prefix npm install --omit=peer --ignore-scripts
+  printf '%s\n' "Back up and detach the live settings symlink before updating."
 fi
 ```
 
-If an existing `npm/package.json` is present, merge the template's `overrides` and matching dependency pins instead of replacing unrelated entries. Start Pi once to resolve the pinned Git packages, then quit before verification. Authentication and browser/microphone permissions are separate, per-machine steps; credentials and runtime histories are not shipped.
+Review and merge existing configuration instead of overwriting it. Installations live under `~/.pi/agent/npm` and `~/.pi/agent/git`, outside the source checkout. Copy-all and git-info are upstream Git packages; do not also load local copies. Authentication and browser/microphone permissions are separate, per-machine steps. Credentials and runtime histories are not shipped.
 
-### 3. Silence Pi runtime churn (per machine)
-Pi rewrites machine-specific keys (`deviceId`, `lastChangelogVersion`) into the live `settings.json` on every run, and the enabled-model list (`enabledModels`) changes constantly as you try models. A clean filter strips these on stage so they can never leak into commits or show up as churn. The binding ships in `.gitattributes`; define the filter once per machine (requires `jq`):
+### 3. Runtime updates and permission policy
+
+Live preferences and package updates stay in `~/.pi/agent`; they must not rewrite this checkout. Changes to the config repository, installed extension code, or new extensions/shims require explicit user permission. The instructions are a consent policy, not an OS security boundary.
+
+Run the native updater manually with:
 
 ```bash
-git config filter.strip-pi-runtime.clean "jq 'del(.deviceId, .lastChangelogVersion, .enabledModels)'"
-git config filter.strip-pi-runtime.smudge cat
+PI_CODING_AGENT_DIR="$HOME/.pi/agent" pi update --extensions --no-approve
 ```
 
-`enabledModels` therefore lives only in your live `settings.json` and is not versioned. Back up live settings separately before a checkout, pull, or branch switch touches the file; those operations can replace the local model list with the committed copy. A fresh clone starts without it, so choose your models with `pi /model`.
+On the configured Mac, the machine-local LaunchAgent `~/Library/LaunchAgents/dev.pi.extensions.nightly.plist` runs that command at 03:00 local time while logged in. Launchd coalesces missed sleep-time runs on wake. It updates extensions only, without reloading running agents; use `/reload` or start a new session to load updates. Logs are under `~/Library/Logs/Pi/`. Inspect the job with:
 
-After you change models, `git status` may still list `settings.json` as modified: git's quick size check runs before the filter. Nothing is actually different (`git diff` is empty); `git add settings.json` clears it and stages nothing unless another key really changed.
+```bash
+launchctl print "gui/$(id -u)/dev.pi.extensions.nightly"
+```
+
+The scheduler is separate from this repository and uses the stock Pi CLI, not a custom update extension or launcher wrapper. Automatic updates trust upstream maintainers and can introduce compatibility changes.
 
 ### 4. Verify and install the doctor command
 From the configuration repository:
@@ -142,11 +136,11 @@ mkdir -p ~/.local/bin
 ln -s "$PWD/bin/pi-doctor" ~/.local/bin/pi-doctor
 ```
 
-Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It resolves the global `pi` executable on PATH before npm changes PATH, excluding `node_modules/.bin` SDK binaries, and prints its absolute path. It checks source parity, tested Pi/plugin pins, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
+Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It resolves the global `pi` executable on PATH before npm changes PATH, excluding `node_modules/.bin` SDK binaries, and prints its absolute path. It checks infrastructure settings, the tested Pi host version, configured upstream package identities, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test; `hc` is required for isolated status/persistence verification. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
 
-Pi may rewrite `settings.json` formatting; the doctor validates its parsed contents without treating whitespace churn as a code failure. For intentional upgrades, update the tested pins in `settings.json`, `verification/packages.json`, and the managed manifest/template together, keep the development SDK aligned with the Pi CLI, then rerun the doctor. Do not blindly run `npm audit fix`.
+The doctor allows per-machine model/preferences changes while checking the approved package list, resource exclusions, stock tools, and trust policy. Extension sources are unpinned: upstream version changes do not require editing verification version pins. Installed npm manifests and lockfiles still record resolved versions; these do not pin Pi's configured sources. Keep the development SDK aligned with the Pi CLI independently of extension updates. Do not blindly run `npm audit fix`.
 
-The standard live location is `~/.pi/agent`. If you keep this repository elsewhere, link or synchronize the owned extensions and safe defaults, including `web-search.json`, into that live directory after reviewing existing machine settings; the doctor rejects drift. Keep provider credentials in per-machine environment variables, not in the tracked web defaults. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
+The standard live location is `~/.pi/agent`, separate from this source checkout. Copy or merge approved settings and safe defaults, including `web-search.json`; do not link live settings or extension code back into the repo. Keep provider credentials in per-machine environment variables, not in the tracked web defaults. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
 
 ### 5. Log in & Run
 The saved default uses `openai-codex` OAuth. Log into that provider (or select and authenticate another supported provider):
@@ -155,10 +149,10 @@ The saved default uses `openai-codex` OAuth. Log into that provider (or select a
 pi /login
 ```
 
-*(Optional)* If you want to use local models or custom endpoints, copy the template and edit your keys:
+*(Optional)* If you want to use local models or custom endpoints, copy the template and configure your endpoint and key environment variables. Keep `models.json` private rather than linking it back to the public template:
 
 ```bash
-cp models.json.example models.json
+cp -n models.json.example "$HOME/.pi/agent/models.json"
 ```
 
 Then fire up Pi:

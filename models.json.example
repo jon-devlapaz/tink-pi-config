@@ -33,7 +33,7 @@
       ]
     },
     "freellmapi": {
-      "baseUrl": "http://100.79.25.11:3001/v1",
+      "baseUrl": "http://localhost:3001/v1",
       "api": "openai-completions",
       "apiKey": "$FREELLMAPI_API_KEY",
       "compat": {

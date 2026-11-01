@@ -10,6 +10,6 @@
     "types": ["node"],
     "verbatimModuleSyntax": true
   },
-  "include": ["extensions/**/*.ts", "verification/*.ts"],
-  "exclude": ["**/*.spec.ts", "node_modules"]
+  "include": ["verification/*.ts"],
+  "exclude": ["node_modules"]
 }

@@ -1,5 +1,7 @@
 # Secrets and credentials
 auth.json
+mcp.json
+mcp-project-approvals.json
 *-accounts.json
 *.private.json
 xai.json
@@ -10,8 +12,16 @@ xai.json
 
 # Session histories and runtime state
 sessions/
-pi-blackhole/*
-!pi-blackhole/pi-blackhole-config.json
+sessions-archive/
+backups/
+extension-backups/
+worktrees/
+missions/
+workflows/
+pi-subagents/
+tmp/
+*.jsonl
+pi-blackhole/
 pi-typesafe/
 pi-voice.json
 trust.json

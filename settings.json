@@ -1,5 +1,5 @@
 {
-  "theme": "github-dark-default",
+  "theme": "system",
   "quietStartup": true,
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
@@ -22,52 +22,41 @@
       "timeoutMs": 120000
     }
   },
-  "defaultProjectTrust": "always",
+  "defaultProjectTrust": "ask",
+  "defaultTools": [
+    "+grep",
+    "+find",
+    "+ls"
+  ],
   "packages": [
-    "npm:pi-blackhole@0.5.11",
-    "git:github.com/earendil-works/pi-review@f1de050504936046c0f85b21fec0e0a93ef394eb",
-    "npm:pi-typesafe@0.9.1",
-    "git:github.com/helloHupc/pi-git-commands@1f7ae5c723778cf16e55bda669899a3d3a3f7d1b",
-    "npm:@earendil-works/pi-voice@0.1.0",
-    "npm:@juicesharp/rpiv-ask-user-question@2.12.0",
+    "git:github.com/earendil-works/pi-review",
+    "npm:pi-typesafe",
+    "npm:@earendil-works/pi-voice",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@jetserge/next-prompt",
     {
-      "source": "npm:@juicesharp/rpiv-todo@2.12.0",
-      "extensions": []
+      "source": "npm:pi-web-access"
     },
-    "npm:pi-subagents@0.78.0",
-    "npm:@jetserge/next-prompt@0.4.2",
-    {
-      "source": "npm:pi-web-access@0.40.0"
-    }
+    "git:github.com/jon-devlapaz/pi-copy-all",
+    "git:github.com/jon-devlapaz/pi-git-info"
   ],
   "extensions": [
     "+builtin:mcp",
     "-extensions/model-info/index.ts",
     "-extensions/herdr-commands/index.ts",
     "-extensions/herdr-naming/index.ts",
-    "-extensions/herdr-agent-state.ts"
+    "-extensions/herdr-agent-state.ts",
+    "-extensions/workflows/index.ts",
+    "-extensions/background-terminals/index.ts",
+    "-extensions/statusline/index.ts",
+    "-extensions/ui-customization/index.ts",
+    "-extensions/session-rotation/index.ts",
+    "-extensions/todo-replay/index.ts",
+    "-extensions/file-search/index.ts",
+    "-extensions/copy-all/index.ts",
+    "-extensions/git-info/index.ts"
   ],
-  "subagents": {
-    "defaultThinking": "high",
-    "agentOverrides": {
-      "scout": {
-        "model": "openai-codex/gpt-6-luna"
-      },
-      "delegate": {
-        "model": "openai-codex/gpt-6-luna"
-      },
-      "researcher": {
-        "subagentOnlyExtensions": [
-          "~/.pi/agent/npm/node_modules/pi-web-access/dist/index.js"
-        ]
-      },
-      "evidence-auditor": {
-        "subagentOnlyExtensions": [
-          "~/.pi/agent/npm/node_modules/pi-web-access/dist/index.js"
-        ]
-      }
-    }
-  },
   "showHardwareCursor": true,
   "terminal": {
     "showTerminalProgress": true

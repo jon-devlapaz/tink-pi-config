@@ -10,10 +10,11 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 SOCKET = "pi-startup-errors-" + str(os.getpid())
 CHECKS = []
 ROOTS = []
+ENV = {}
 
 
 def tm(*args):
-    return subprocess.run(["tmux", "-L", SOCKET, *args], capture_output=True, text=True, check=True).stdout
+    return subprocess.run(["tmux", "-L", SOCKET, "-f", "/dev/null", *args], env=ENV, capture_output=True, text=True, check=True, timeout=15).stdout
 
 
 def capture(label):
@@ -31,8 +32,6 @@ def wait_ready(log, label):
 
 
 try:
-    tm("new-session", "-d", "-s", "harness", "-x", "120", "-y", "36", "sleep 180")
-    tm("set-option", "-g", "remain-on-exit", "on")
     for kind in ["load", "hook", "notify"]:
         sandbox = json.loads(subprocess.check_output(["node", str(REPO / "verification/sandbox.mjs"), sys.argv[1]], text=True))
         root = pathlib.Path(sandbox["root"])
@@ -40,6 +39,10 @@ try:
         ROOTS.append(str(root))
         log = root / "probe.jsonl"
         env = sandbox["env"]
+        ENV = env
+        if kind == "load":
+            tm("new-session", "-d", "-s", "harness", "-x", "120", "-y", "36", "sleep 180")
+            tm("set-option", "-g", "remain-on-exit", "on")
         env["PROBE_LOG"] = str(log)
         (config / "extensions/000-probe.ts").symlink_to(REPO / "verification/tui-probe.ts")
         marker = "STARTUP-" + kind.upper() + "-FAILURE-7214"
@@ -84,8 +87,8 @@ except Exception as error:
 finally:
     try:
         tm("kill-server")
-    except Exception:
-        pass
+    except Exception as error:
+        CHECKS.append({"name": "tmux-cleanup", "ok": False, "error": str(error)})
     for root in ROOTS:
         (pathlib.Path(root) / "startup-errors-results.json").write_text(json.dumps(CHECKS, indent=2))
     print(json.dumps(CHECKS), flush=True)

@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
-import { visibleWidth } from "@earendil-works/pi-tui";
 export default function (pi: any) {
   const log = (event: any) =>
     fs.appendFileSync(process.env.PROBE_LOG!, JSON.stringify(event) + "\n");
@@ -91,29 +90,18 @@ export default function (pi: any) {
   });
   pi.on("session_start", (_e: any, ctx: any) => {
     log({ event: "ready", mode: ctx.mode });
-    const setFooter = ctx.ui.setFooter.bind(ctx.ui);
-    ctx.ui.setFooter = (factory: any) => {
-      log({ event: "footer-install", enabled: !!factory });
-      return setFooter(
-        factory
-          ? (...args: any[]) => {
-              const c = factory(...args);
-              const render = c.render.bind(c);
-              c.render = (width: number) => {
-                const lines = render(width);
-                log({
-                  event: "footer-render",
-                  width,
-                  widths: lines.map(visibleWidth),
-                  lines,
-                });
-                return lines;
-              };
-              return c;
-            }
-          : undefined,
-      );
-    };
+    for (const method of ["setFooter", "setHeader", "setTitle"]) {
+      const original = ctx.ui[method].bind(ctx.ui);
+      ctx.ui[method] = (value: any) => {
+        log({ event: "ui-override", method, enabled: !!value });
+        return original(value);
+      };
+    }
+    log({
+      event: "tools",
+      names: pi.getAllTools().map((tool: any) => tool.name),
+      active: pi.getActiveTools(),
+    });
     const setEditor = ctx.ui.setEditorComponent.bind(ctx.ui);
     ctx.ui.setEditorComponent = (factory: any) => {
       log({ event: "editor-install", enabled: !!factory });

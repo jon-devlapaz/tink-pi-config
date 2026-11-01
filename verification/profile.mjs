@@ -98,7 +98,7 @@ const loaded = loader.getExtensions();
 assert.equal(loaded.errors.length, 0, JSON.stringify(loaded.errors));
 assert(
   !loaded.extensions.some((e) =>
-    /pi-pstack|\/model-info\/|\/summaries\/|\/spark-strict-tools\/|\/pi-mcp-adapter\/|\/@narumitw\/pi-statusline\//.test(
+    /pi-pstack|\/model-info\/|\/summaries\/|\/spark-strict-tools\/|\/pi-mcp-adapter\/|\/@narumitw\/pi-statusline\/|\/herdr-commands\/|\/herdr-naming\/|\/herdr-agent-state\.ts$|\/@andrewjacop\/pi-herdr\/|\/pi-subagents\/|\/pi-btw\/|\/workflows\/|\/background-terminals\/|\/statusline\/|\/ui-customization\/|\/session-rotation\/|\/file-search\/|\/pi-blackhole\/|\/pi-git-commands\//.test(
       e.path,
     ),
   ),
@@ -183,38 +183,152 @@ try {
       JSON.stringify(runner.getCommandDiagnostics()),
     );
     const names = runner.getRegisteredCommands().map((c) => c.invocationName);
-    assert(names.includes("subagents"));
-    assert(names.includes("herdr-config"));
-    assert(!names.some((name) => /pstack|poteto/.test(name)));
-  });
-  await check("fd real binary", async () =>
     assert(
-      text(
-        await issue("fd", { path: cwd, pattern: "fixture.ts", glob: true }),
-      ).includes("fixture.ts"),
+      !names.some((name) =>
+        /pstack|poteto|^herdr-|^subagents?$|^workflow|^btw$|^statusline$/.test(
+          name,
+        ),
+      ),
+      "Desktop-owned orchestration or custom UI command loaded",
+    );
+    assert(
+      !loaded.extensions.some((extension) =>
+        [...extension.tools.keys()].some((name) =>
+          /^(herdr_|subagents?(?:_|$)|workflow$|bg_)/.test(name),
+        ),
+      ),
+      "Desktop-owned orchestration tools must not load",
+    );
+  });
+  await check("retained coding and task tools", () => {
+    const names = session.getAllTools().map((tool) => tool.name);
+    for (const name of [
+      "read",
+      "bash",
+      "edit",
+      "write",
+      "grep",
+      "find",
+      "ls",
+      "todo",
+      "transcribe_file",
+      "codemode",
+    ])
+      assert(names.includes(name), "missing retained tool: " + name);
+    for (const name of ["grep", "find", "ls"]) {
+      assert(
+        session.getActiveToolNames().includes(name),
+        "stock tool is inactive: " + name,
+      );
+      assert(
+        !loaded.extensions.some((extension) => extension.tools.has(name)),
+        "extension shadows stock tool: " + name,
+      );
+    }
+    assert(
+      !names.some((name) => name === "fd" || name === "rg"),
+      "custom search tool remains registered",
+    );
+    assert(
+      !names.some((name) =>
+        /^(herdr_|subagents?(?:_|$)|workflow$|bg_)/.test(name),
+      ),
+    );
+  });
+  await check("coding read write edit bash", async () => {
+    const file = path.join(cwd, "coding-probe.txt");
+    await issue("write", { path: file, content: "CODING-BEFORE" });
+    await issue("edit", {
+      path: file,
+      edits: [{ oldText: "CODING-BEFORE", newText: "CODING-AFTER" }],
+    });
+    assert(text(await issue("read", { path: file })).includes("CODING-AFTER"));
+    assert(
+      text(await issue("bash", { command: "printf CODING-SHELL-OK" })).includes(
+        "CODING-SHELL-OK",
+      ),
+    );
+  });
+  await check("stock find real binary", async () =>
+    assert(
+      text(await issue("find", { path: cwd, pattern: "fixture.ts" })).includes(
+        "fixture.ts",
+      ),
     ),
   );
-  await check("rg real binary", async () =>
+  await check("stock grep real binary", async () =>
     assert(
       text(
-        await issue("rg", {
+        await issue("grep", {
           path: cwd,
           pattern: "QUIET-PLUMBING-7214",
-          fixed_strings: true,
+          literal: true,
         }),
       ).includes("QUIET-PLUMBING-7214"),
     ),
   );
-  await check("no-match is not an error", () =>
-    issue("rg", { path: cwd, pattern: "ABSENT-9931", fixed_strings: true }),
+  await check("stock ls directory listing", async () =>
+    assert(text(await issue("ls", { path: cwd })).includes("fixture.ts")),
   );
-  await check("invalid schema rejects visibly", async () =>
-    assert(
-      text(await issue("fd", { path: cwd, max_depth: 0 }, true)).includes(
-        "max_depth",
+  await check(
+    "system search binaries remain available through bash",
+    async () => {
+      const versions = text(
+        await issue("bash", { command: "fd --version && rg --version" }),
+      );
+      assert.match(versions, /fd \d/);
+      assert.match(versions, /ripgrep \d/);
+    },
+  );
+  await check("stock search respects gitignore", async () => {
+    fs.writeFileSync(path.join(cwd, ".gitignore"), "ignored-probe.txt\n");
+    fs.writeFileSync(
+      path.join(cwd, "ignored-probe.txt"),
+      "IGNORED-SEARCH-7214\n",
+    );
+    assert.match(
+      text(await issue("find", { path: cwd, pattern: "ignored-probe.txt" })),
+      /No files found/i,
+    );
+    assert.match(
+      text(
+        await issue("grep", {
+          path: cwd,
+          pattern: "IGNORED-SEARCH-7214",
+          literal: true,
+        }),
       ),
+      /No matches found/i,
+    );
+  });
+  await check("stock grep literal metacharacters", async () => {
+    const file = path.join(cwd, "literal-probe.txt");
+    fs.writeFileSync(file, "literal (needle).* end\n");
+    assert(
+      text(
+        await issue("grep", {
+          path: file,
+          pattern: "(needle).*",
+          literal: true,
+        }),
+      ).includes("literal (needle).* end"),
+    );
+  });
+  await check("no-match is not an error", () =>
+    issue("grep", { path: cwd, pattern: "ABSENT-9931", literal: true }),
+  );
+  await check("invalid search pattern rejects visibly", async () =>
+    assert.match(
+      text(await issue("grep", { path: cwd, pattern: "[" }, true)),
+      /regex|parse error/i,
     ),
   );
+  await check("stock search path errors reject visibly", async () => {
+    const missing = path.join(cwd, "missing-search-directory");
+    await issue("find", { path: missing, pattern: "*.ts" }, true);
+    await issue("grep", { path: missing, pattern: "fixture" }, true);
+    await issue("ls", { path: missing }, true);
+  });
   await check("missing file rejects visibly", () =>
     issue("read", { path: path.join(cwd, "absent.txt") }, true),
   );
@@ -239,34 +353,21 @@ try {
       text(
         await issue("codemode", {
           code:
-            "text(await tools.rg({path:" +
+            "text(await tools.grep({path:" +
             JSON.stringify(cwd) +
-            ',pattern:"QUIET-PLUMBING-7214",fixed_strings:true}));',
+            ',pattern:"QUIET-PLUMBING-7214",literal:true}));',
         }),
       ).includes("QUIET-PLUMBING-7214"),
     ),
   );
-  for (const command of [
-    "statusline",
-    "herdr-name",
-    "git-tag list",
-    "end-review",
-    "typesafe status",
-  ]) {
+  for (const command of ["end-review", "typesafe status"]) {
     await check("command /" + command, () => session.prompt("/" + command));
   }
   await check("fixture prompt lifecycle", async () => {
     await session.prompt("Remember QUIET-PLUMBING-7214");
     assert.equal(session.getLastAssistantText(), "PLUMBING-MODEL-OK");
   });
-  await check("recall synthetic session", async () =>
-    assert(
-      text(await issue("recall", { query: "QUIET-PLUMBING-7214" })).includes(
-        "QUIET-PLUMBING-7214",
-      ),
-    ),
-  );
-  await check("native compaction and recall", async () => {
+  await check("native compaction", async () => {
     manager.applyOverrides({
       compaction: { enabled: true, keepRecentTokens: 512, reserveTokens: 1024 },
     });
@@ -278,11 +379,6 @@ try {
     assert(result.summary.includes("PLUMBING-MODEL-OK"));
     assert(
       session.sessionManager.getBranch().some((e) => e.type === "compaction"),
-    );
-    assert(
-      text(await issue("recall", { query: "COMPACT-PLUMBING-8891" })).includes(
-        "COMPACT-PLUMBING-8891",
-      ),
     );
   });
   await check("nested todo survives tree replay", async () => {

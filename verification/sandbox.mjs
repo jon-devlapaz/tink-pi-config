@@ -15,6 +15,69 @@ export function packagePath(pin, agentDir) {
     : path.join(agentDir, "git", pin.path);
 }
 
+export function checkManagedPackages(managed) {
+  assert(
+    managed.dependencies &&
+      typeof managed.dependencies === "object" &&
+      !Array.isArray(managed.dependencies),
+    "managed dependencies are missing",
+  );
+  const expected = pins.packages
+    .filter((entry) => entry.kind === "npm")
+    .map((entry) => entry.name)
+    .sort();
+  assert.deepEqual(
+    Object.keys(managed.dependencies).sort(),
+    expected,
+    "managed package identities disagree",
+  );
+  for (const name of expected) {
+    assert(
+      typeof managed.dependencies[name] === "string" &&
+        managed.dependencies[name].trim().length > 0,
+      `${name}: managed dependency specification is missing`,
+    );
+  }
+}
+
+function gitRepositoryIdentity(value) {
+  let source = value.trim();
+  assert(
+    source &&
+      !source.startsWith("/") &&
+      !source.startsWith(".") &&
+      !source.includes("\\"),
+    "Git repository URL is invalid",
+  );
+  if (source.startsWith("git:") && !source.startsWith("git://")) {
+    source = source.slice(4);
+  }
+  const scp = source.match(/^((?:[^@/]+@)?[^/:]+):([^/].*)$/);
+  if (scp) source = `ssh://${scp[1]}/${scp[2]}`;
+  else if (!source.includes("://")) source = `https://${source}`;
+  let url;
+  try {
+    url = new URL(source);
+  } catch {
+    throw new Error("Git repository URL is invalid");
+  }
+  assert(
+    ["https:", "ssh:", "git:"].includes(url.protocol) &&
+      url.hostname &&
+      !url.search &&
+      !url.hash &&
+      url.pathname !== "/" &&
+      !url.pathname.includes("%"),
+    "Git repository URL is invalid",
+  );
+  const defaults = { "https:": "443", "ssh:": "22", "git:": "9418" };
+  const port =
+    url.port && url.port !== defaults[url.protocol] ? `:${url.port}` : "";
+  let repository = url.pathname.replace(/\/+$/, "").replace(/\.git$/, "");
+  if (url.hostname === "github.com") repository = repository.toLowerCase();
+  return `${url.hostname}${port}${repository}`;
+}
+
 export function checkPackages(
   agentDir,
   settings = readJson(path.join(repo, "settings.json")),
@@ -25,7 +88,7 @@ export function checkPackages(
   assert.deepEqual(
     sources,
     pins.packages.map((pin) => pin.source),
-    "settings and tested package pins disagree",
+    "settings and configured package sources disagree",
   );
   assert(
     !sources.some((source) => source.includes("pi-pstack")),
@@ -34,23 +97,70 @@ export function checkPackages(
   for (const pin of pins.packages) {
     const location = packagePath(pin, agentDir);
     if (pin.kind === "npm") {
+      const installed = readJson(path.join(location, "package.json"));
       assert.equal(
-        readJson(path.join(location, "package.json")).version,
-        pin.version,
-        `${pin.name}: installed version differs from tested pin`,
+        installed.name,
+        pin.name,
+        `${pin.name}: installed package identity mismatch`,
+      );
+      assert(
+        typeof installed.version === "string" &&
+          installed.version.trim().length > 0,
+        `${pin.name}: installed version metadata is missing`,
       );
     } else {
+      let origins;
+      try {
+        origins = execFileSync(
+          "git",
+          ["-C", location, "remote", "get-url", "--all", "origin"],
+          { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+        )
+          .trim()
+          .split("\n");
+      } catch {
+        throw new Error(`${pin.path}: installed Git origin is unavailable`);
+      }
+      for (const origin of origins) {
+        assert.equal(
+          gitRepositoryIdentity(origin),
+          gitRepositoryIdentity(pin.source),
+          `${pin.path}: Git upstream identity mismatch`,
+        );
+      }
+      execFileSync("git", ["-C", location, "rev-parse", "--verify", "HEAD"], {
+        encoding: "utf8",
+      });
       assert.equal(
-        execFileSync("git", ["-C", location, "rev-parse", "HEAD"], {
-          encoding: "utf8",
-        }).trim(),
-        pin.commit,
-        `${pin.path}: installed commit differs from tested pin`,
+        fs.realpathSync(
+          execFileSync(
+            "git",
+            ["-C", location, "rev-parse", "--show-toplevel"],
+            {
+              encoding: "utf8",
+            },
+          ).trim(),
+        ),
+        fs.realpathSync(location),
+        `${pin.path}: installed Git checkout identity mismatch`,
       );
       assert.equal(
-        execFileSync("git", ["-C", location, "diff", "--stat", "HEAD"], {
-          encoding: "utf8",
-        }).trim(),
+        execFileSync(
+          "git",
+          [
+            "-C",
+            location,
+            "diff",
+            "--stat",
+            "HEAD",
+            "--",
+            ".",
+            ":(top,exclude)package-lock.json",
+          ],
+          {
+            encoding: "utf8",
+          },
+        ).trim(),
         "",
         `${pin.path}: tracked vendor code was modified`,
       );
@@ -74,7 +184,11 @@ export function createSandbox(agentDir) {
   settings.extensions = settings.extensions.filter(
     (entry) => !entry.includes("builtin:mcp"),
   );
-  settings.defaultTools = ["+codemode", "+tool_search"];
+  settings.defaultTools = [
+    ...(settings.defaultTools ?? []),
+    "+codemode",
+    "+tool_search",
+  ];
   settings.defaultProjectTrust = "never";
   settings.cacheWarming = { enabled: false };
   settings.retry = { enabled: false };
@@ -83,15 +197,6 @@ export function createSandbox(agentDir) {
     JSON.stringify(settings, null, 2),
   );
   fs.mkdirSync(path.join(config, "extensions"));
-  for (const entry of fs.readdirSync(path.join(repo, "extensions"), {
-    withFileTypes: true,
-  })) {
-    fs.symlinkSync(
-      path.join(repo, "extensions", entry.name),
-      path.join(config, "extensions", entry.name),
-      entry.isDirectory() ? "dir" : "file",
-    );
-  }
   for (const folder of ["npm", "bin"]) {
     const source = path.join(agentDir, folder);
     if (fs.existsSync(source))
@@ -108,11 +213,7 @@ export function createSandbox(agentDir) {
       path.join(config, "themes"),
       "dir",
     );
-  for (const relative of [
-    "next-prompt.json",
-    "pi-blackhole/pi-blackhole-config.json",
-    "web-search.json",
-  ]) {
+  for (const relative of ["next-prompt.json", "web-search.json"]) {
     const target = path.join(config, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(path.join(repo, relative), target);
