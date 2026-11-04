@@ -1,9 +1,9 @@
 {
   "providers": {
-    "openai": {
+    "openai-codex": {
       "modelOverrides": {
-        "gpt-6-luna": {
-          "name": "Cheap - GPT-6 Luna"
+        "gpt-5.6-luna": {
+          "name": "Cheap - GPT-5.6 Luna"
         },
         "gpt-6.1-sol": {
           "name": "Daily - GPT-6.1 Sol"

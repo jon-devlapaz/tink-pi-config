@@ -1,6 +1,5 @@
 ---
 description: Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.
-alwaysApply: true
 ---
 
 # Karpathy behavioral guidelines

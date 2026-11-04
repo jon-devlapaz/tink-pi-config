@@ -7,9 +7,9 @@
   "modelThinkingLevels": {
     "freellmapi/auto:fast": "off",
     "freellmapi/fusion": "off",
-    "openai/gpt-6-luna": "medium",
-    "openai/gpt-6.1-sol": "high",
-    "openai/gpt-6-astra": "max"
+    "openai-codex/gpt-5.6-luna": "medium",
+    "openai-codex/gpt-6.1-sol": "high",
+    "openai-codex/gpt-6-astra": "max"
   },
   "compaction": {
     "enabled": true
