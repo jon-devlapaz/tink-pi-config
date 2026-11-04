@@ -21,6 +21,7 @@ Here is what makes this setup awesome:
 ```text
 .
 ├── AGENTS.md                 # Agent instructions (style, safety, git rules)
+├── APPEND_SYSTEM.md          # Yohaku spirit, preserving Pi's default guidance
 ├── settings.json             # Core Pi configuration and plugin registry
 ├── web-search.json           # Credential-free web safety defaults
 ├── models.json.example       # Template for custom/local OpenAI & Gemini models
@@ -48,7 +49,7 @@ Please inspect my system and set up this Pi coding agent configuration:
 
 2. Install Configuration:
    - Keep this repository checkout separate from the live `~/.pi/agent` directory. Back up existing live settings before changing them; preserve credentials, model configuration, and sessions.
-   - Copy or merge approved settings and safe defaults into the live directory. Keep live `settings.json` a regular file, not a symlink into the checkout. Include `web-search.json` and the explicit-permission policy in `AGENTS.md`.
+   - Copy or merge approved settings and safe defaults into the live directory. Keep live `settings.json` a regular file, not a symlink into the checkout. Include `web-search.json`, `APPEND_SYSTEM.md`, and the explicit-permission policy in `AGENTS.md`. Leave `SYSTEM.md` absent so Pi retains its default guidance.
    - Run `npm ci` in the source checkout for verification dependencies only.
    - Install configured upstream packages with `PI_CODING_AGENT_DIR="$HOME/.pi/agent" pi update --extensions --no-approve`. Package sources are unpinned; copy-all and git-info come from their standalone GitHub repositories, not local extension copies. Do not introduce local dependency overrides.
    - Copy or merge desired skills, prompts, and themes separately after review.
@@ -93,7 +94,7 @@ cd ~/dev/tools/tink-pi-config
 npm ci
 
 mkdir -p "$HOME/.pi/agent"
-for file in settings.json web-search.json next-prompt.json AGENTS.md; do
+for file in settings.json web-search.json next-prompt.json AGENTS.md APPEND_SYSTEM.md; do
   if [ ! -e "$HOME/.pi/agent/$file" ]; then
     cp "$file" "$HOME/.pi/agent/$file"
   fi
