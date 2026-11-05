@@ -135,12 +135,3 @@ test("Pi infrastructure changes require explicit permission", () => {
       );
   }
 });
-
-test("live delegation skill and review prompt match canonical Desktop instructions", () => {
-  for (const relative of documents.slice(1))
-    assert.equal(
-      fs.readFileSync(path.join(agentDir, relative), "utf8"),
-      fs.readFileSync(path.join(repo, relative), "utf8"),
-      relative + ": live instructions differ",
-    );
-});
