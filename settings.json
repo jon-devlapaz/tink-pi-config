@@ -4,6 +4,13 @@
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
+  "enabledModels": [
+    "openai-codex/gpt-6-astra",
+    "openai-codex/gpt-6.1-sol",
+    "openai-codex/gpt-5.6-luna",
+    "freellmapi/fusion",
+    "anthropic/claude-opus-5-5"
+  ],
   "modelThinkingLevels": {
     "freellmapi/auto:fast": "off",
     "freellmapi/fusion": "off",

@@ -16,40 +16,38 @@
 
 - Be terse and code-first: diffs and commands first, prose only for what is non-obvious.
 - No preamble, no summaries of what was just done unless asked.
-- Ask instead of guessing when a request is ambiguous and cheap to clarify.
+- Ask instead of guessing when a consequential requirement is ambiguous.
 
-## Git
+## Safety and Git
 
 - Never stage, commit, push, or amend unless explicitly asked in this session.
 - When asked to commit: inspect the diff first, stage only relevant files, match the repo's commit style.
 - In long sessions, fetch/pull before pushing; the remote may have moved under you.
+- Confirm before destructive operations such as recursive deletion, dropping data, or force-pushing.
+- Do not expose secrets in chat or copy them into agent sessions.
 
-## Verification
+## Engineering
 
-- After changing code, detect and run the project's lint/typecheck/tests (check package.json / Makefile / README) and report results.
+- Read relevant tests before changing behavior; treat them as contracts.
+- After code changes, detect and run the project's applicable tests, lint, and type checks (check package.json / Makefile / README). Report failures; don't claim completion with unresolved blockers.
 - If no check exists, say so in one line instead of inventing one.
+- At module boundaries, prefer explicit errors over silent coercion or fallback behavior.
+- Do not remove tests without explaining why in the diff. A regression test only counts if verified to fail with its guard reverted.
+- Mock-green suites hide real bugs; probe with stub-driven adversarial runs when it matters.
+- No code comments unless asked. Do not create README/docs/markdown files unless asked.
 
-## Boundaries
+## Herdr Desktop-only orchestration
 
-- No code comments unless I ask.
-- Do not create README/docs/markdown files unless asked.
-- Confirm before destructive operations (rm -rf, dropping data, force-push).
+- Use `hc` (herdr-core) for Herdr agent/program orchestration and `herdr-app` for Desktop window control. Read `hc --skill` before orchestration and `herdr-app --skill` before window changes.
+- Herdr Desktop is the home for visible, persistent agents and programs. Route all authorized delegation through interactive `hc` terminals, using configured templates or authenticated Pi defaults rather than inventing model flags. Pi supplies coding tools and native status/title reporting, not internal subagent/workflow/side-agent orchestration.
+- The legacy `herdr` CLI, `herdr_*` tools, and native Herdr TUI inspector target a separate server, not Desktop. Do not use them for new work, including from cmux or an inherited TUI environment. Never substitute `hc` through `HERDR_BIN`; the command APIs differ.
+- Start interactive Pi inside Desktop for automatic OSC 7501 status reporting. Preserve existing TUI/cmux agents; do not migrate, reload, stop, or message unrelated sessions.
+- Keep long-lived programs in `hc` terminals. Preserve retained sessions and worktrees until cleanup is explicitly authorized.
 
-## Subagents & Delegation
+## Delegation
 
 - Delegate only when the current request or applicable instructions authorize it. Direct execution is the default; complexity and tool availability are not authorization.
 - Before authorized delegation, read [the subagents skill](skills/subagents/SKILL.md). It owns runner selection, model routing, lifecycle, recovery, and privacy rules.
-- Herdr Desktop is the home for visible, persistent agents. Use `hc` for all authorized agent/program orchestration and `herdr-app` for window control; read their `--skill` manuals first. Use configured templates or authenticated Pi defaults rather than inventing model flags.
-- Keep delegation bounded and non-recursive. Use one writer per working tree and separate worktrees for concurrent writers.
-- Start independent reviewers with fresh context and a self-contained specification plus diff. Fork only when inherited history is necessary and safe to share.
-- Require each child to report changes, validation results, and unresolved decisions; verify its evidence before accepting the result.
-- Keep long-lived programs in `hc` terminals. Pi owns ordinary coding tools and native status/title reporting; Desktop owns orchestration and visibility. Preserve retained sessions and worktrees until cleanup is explicitly authorized.
-
-
-## Correctness
-
-- Existing tests pin behavior: read them as contracts before changing code a report complains about.
-- Never delete tests silently; state the reason in the diff.
-- At module boundaries, prefer fail-fast errors over silent coercion or fallback values.
-- A regression test only counts if verified to fail with its guard reverted.
-- Mock-green suites hide real bugs; probe with stub-driven adversarial runs when it matters.
+- Keep delegation bounded and non-recursive. Use one writer per working tree and isolated worktrees for concurrent writers.
+- Start independent reviewers with fresh context and a self-contained specification plus diff, not the implementation conversation. Fork only when inherited history is necessary and safe to share.
+- Require each child to report changes, validation results, and unresolved decisions; review delegated changes and validate them yourself before reporting completion.
