@@ -88,6 +88,38 @@ test("Herdr orchestration disables overlapping resources in canonical and deploy
   assert(instructions.includes("`hc`"));
 });
 
+export function checkReviewerRouting(skill, enabledModels) {
+  const routes = [
+    ...skill.matchAll(
+      /`pi --provider ([\w-]+) --model ([\w.-]+)` reviews `([\w-]+)` work/g,
+    ),
+  ];
+  assert(routes.length >= 2, "reviewer routing is missing");
+  for (const [route, provider, model, author] of routes) {
+    assert.notEqual(
+      provider,
+      author,
+      route + ": reviewer shares the author's vendor",
+    );
+    assert(
+      enabledModels.includes(provider + "/" + model),
+      route + ": reviewer model is not enabled",
+    );
+  }
+}
+
+test("reviewers are routed to an enabled model from another vendor", () => {
+  const settings = JSON.parse(
+    fs.readFileSync(path.join(repo, "settings.json"), "utf8"),
+  );
+  checkReviewerRouting(
+    fs.readFileSync(path.join(repo, documents[1]), "utf8"),
+    settings.enabledModels,
+  );
+  const prompt = fs.readFileSync(path.join(repo, documents[2]), "utf8");
+  assert(prompt.includes("different model vendor"));
+});
+
 test("retired routing and personal-path regressions are rejected", () => {
   for (const text of [
     "playbooks → pstack",
