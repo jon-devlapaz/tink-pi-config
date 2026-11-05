@@ -52,7 +52,7 @@ Please inspect my system and set up this Pi coding agent configuration:
    - Copy or merge approved settings and safe defaults into the live directory. Keep live `settings.json` a regular file, not a symlink into the checkout. Include `web-search.json`, `APPEND_SYSTEM.md`, and the explicit-permission policy in `AGENTS.md`. Leave `SYSTEM.md` absent so Pi retains its default guidance.
    - Run `npm ci` in the source checkout for verification dependencies only.
    - Install configured upstream packages with `PI_CODING_AGENT_DIR="$HOME/.pi/agent" pi update --extensions --no-approve`. Package sources are unpinned; copy-all and git-info come from their standalone GitHub repositories, not local extension copies. Do not introduce local dependency overrides.
-   - Copy or merge desired skills, prompts, and themes separately after review.
+   - After review, copy all skills, prompts, and themes into the live directory; the doctor fails if live has extra, missing, or different files.
    - Link `bin/pi-doctor` into a directory on PATH (for example `~/.local/bin`). Do not overwrite an existing command.
 
 3. Verification:
@@ -93,6 +93,10 @@ git clone https://github.com/jon-devlapaz/tink-pi-config.git ~/dev/tools/tink-pi
 cd ~/dev/tools/tink-pi-config
 npm ci
 
+# Per-machine clean filter bound in .gitattributes (requires jq)
+git config filter.strip-pi-runtime.clean "jq 'del(.deviceId, .lastChangelogVersion)'"
+git config filter.strip-pi-runtime.smudge cat
+
 mkdir -p "$HOME/.pi/agent"
 for file in settings.json web-search.json next-prompt.json AGENTS.md APPEND_SYSTEM.md; do
   if [ ! -e "$HOME/.pi/agent/$file" ]; then
@@ -106,6 +110,8 @@ else
   printf '%s\n' "Back up and detach the live settings symlink before updating."
 fi
 ```
+
+The clean filter keeps Pi's machine-specific `deviceId` and `lastChangelogVersion` out of commits; `enabledModels` is versioned. Git does not copy filter definitions on clone, so `pi-doctor` fails until they are set.
 
 Review and merge existing configuration instead of overwriting it. Installations live under `~/.pi/agent/npm` and `~/.pi/agent/git`, outside the source checkout. Copy-all and git-info are upstream Git packages; do not also load local copies. Authentication and browser/microphone permissions are separate, per-machine steps. Credentials and runtime histories are not shipped.
 
@@ -139,7 +145,7 @@ ln -s "$PWD/bin/pi-doctor" ~/.local/bin/pi-doctor
 
 Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It resolves the global `pi` executable on PATH before npm changes PATH, excluding `node_modules/.bin` SDK binaries, and prints its absolute path. It checks infrastructure settings, the tested Pi host version, configured upstream package identities, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test; `hc` is required for isolated status/persistence verification. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
 
-The doctor allows per-machine model/preferences changes while checking the approved package list, resource exclusions, stock tools, and trust policy. Extension sources are unpinned: upstream version changes do not require editing verification version pins. Installed npm manifests and lockfiles still record resolved versions; these do not pin Pi's configured sources. Keep the development SDK aligned with the Pi CLI independently of extension updates. Do not blindly run `npm audit fix`.
+The doctor checks the approved package list, resource exclusions, stock tools, and trust policy, and fails when the live configuration drifts from this repository: `AGENTS.md`, `APPEND_SYSTEM.md`, `next-prompt.json`, prompts, skills, and themes must match exactly, and `settings.json` may differ only in Pi's runtime keys (`deviceId`, `lastChangelogVersion`, `extensionChangelogVersions`). Commit model or preference changes here and copy them to the live directory. Extension sources are unpinned: upstream version changes do not require editing verification version pins. Installed npm manifests and lockfiles still record resolved versions; these do not pin Pi's configured sources. Keep the development SDK aligned with the Pi CLI independently of extension updates. Do not blindly run `npm audit fix`.
 
 The standard live location is `~/.pi/agent`, separate from this source checkout. Copy or merge approved settings and safe defaults, including `web-search.json`; do not link live settings or extension code back into the repo. Keep provider credentials in per-machine environment variables, not in the tracked web defaults. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
 
