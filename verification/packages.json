@@ -1,5 +1,5 @@
 {
-  "hostVersion": "1.4.0",
+  "hostVersion": "1.5.0",
   "packages": [
     {
       "source": "git:github.com/earendil-works/pi-review",

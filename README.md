@@ -42,7 +42,7 @@ The easiest way to get this running is to let your AI coding agent do the legwor
 Please inspect my system and set up this Pi coding agent configuration:
 
 1. System Check:
-   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.4.0.
+   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.5.0.
    - Check if Homebrew is available (on macOS).
    - Check if `ripgrep` (`rg`), `fd`, `tmux`, Python 3, `hc`, and `herdr-app` are installed. Herdr Desktop supplies the agent/program runtime; the verifier requires `hc`.
    - Ask before installing missing system tools using Homebrew (`brew install ripgrep fd tmux`) or the platform equivalent. Install Herdr Desktop separately; the legacy `herdr` CLI is not a substitute.
@@ -70,7 +70,7 @@ Please inspect my system and set up this Pi coding agent configuration:
 Prefer running the commands yourself? Here is the quick walk-through:
 
 ### 1. Prerequisites
-Make sure you have Node 22.19+, Pi 1.4.0, Python 3, tmux, and the CLI utilities installed. Herdr Desktop must supply `hc` and `herdr-app`; `hc` is required by the isolated core verification:
+Make sure you have Node 22.19+, Pi 1.5.0, Python 3, tmux, and the CLI utilities installed. Herdr Desktop must supply `hc` and `herdr-app`; `hc` is required by the isolated core verification:
 
 ```bash
 # Verify Node version
