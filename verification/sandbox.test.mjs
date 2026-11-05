@@ -158,11 +158,15 @@ test("stock UI and Desktop orchestration stay free of overlapping packages", () 
 
 test("extension sources float without duplicate SDK wiring", () => {
   const agentDir = process.env.PI_VERIFY_AGENT_DIR ?? getAgentDir();
-  for (const root of [repo, agentDir]) {
-    const manifest = readJson(path.join(root, "package.json"));
-    assert.equal(manifest.dependencies["pi-typesafe"], undefined);
-    assert.equal(manifest.overrides?.["pi-typesafe"], undefined);
-  }
+  const manifest = readJson(path.join(repo, "package.json"));
+  assert.equal(manifest.dependencies["pi-typesafe"], undefined);
+  assert.equal(manifest.overrides?.["pi-typesafe"], undefined);
+  assert.equal(
+    readJson(path.join(agentDir, "npm/package.json")).overrides?.[
+      "pi-typesafe"
+    ],
+    undefined,
+  );
   for (const entry of pins.packages) {
     assert.equal(entry.version, undefined);
     assert.equal(entry.commit, undefined);
