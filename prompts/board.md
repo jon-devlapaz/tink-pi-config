@@ -2,7 +2,7 @@
 description: Debate a hard question with a two-vendor panel in Herdr Desktop
 argument-hint: "<question>"
 ---
-Convene a read-only board on: ${@}
+Convene a read-only board on: $@
 
 1. If the question is empty or ambiguous, ask for it and stop. This request authorizes exactly two read-only panel members, not recursive delegation or edits.
 2. Read the `subagents` skill, `hc --skill`, and `herdr-app --skill`. Create a fresh report directory with `mktemp -d`. Launch one interactive Pi member per vendor with the two commands in the skill's reviewer routing (Anthropic Opus and Codex Astra), each with an explicit cwd and a name such as `board-opus` and `board-astra`. Make both visible in the current Desktop space.
