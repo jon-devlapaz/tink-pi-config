@@ -6,23 +6,32 @@ import { getBuiltinModels } from "@earendil-works/pi-ai/providers/all";
 const read = (file) =>
   JSON.parse(fs.readFileSync(new URL(`../${file}`, import.meta.url), "utf8"));
 const preferences = [
-  ["gpt-5.6-luna", "Cheap - GPT-5.6 Luna", "medium"],
-  ["gpt-6.1-sol", "Daily - GPT-6.1 Sol", "high"],
-  ["gpt-6-astra", "Smart - GPT-6 Astra", "max"],
+  ["openai-codex", "gpt-5.6-luna", "Cheap - GPT-5.6 Luna", "medium"],
+  ["openai-codex", "gpt-6.1-sol", "Daily - GPT-6.1 Sol", "high"],
+  ["openai-codex", "gpt-6-astra", "Smart - GPT-6 Astra", "max"],
+  ["anthropic", "claude-opus-5-5", "Review - Claude Opus 5.5", "high"],
+];
+const customPreferences = [
+  ["freellmapi", "fusion", "Free - FreeLLMAPI Fusion", "off"],
 ];
 
 function checkAlignment(settings, models) {
   assert.equal(settings.defaultProvider, "openai-codex");
-  const catalog = getBuiltinModels("openai-codex");
-  for (const [id, name, level] of preferences) {
+  for (const [provider, id, name, level] of preferences) {
     assert(
-      catalog.some((model) => model.id === id),
-      `unknown Codex model ${id}`,
+      getBuiltinModels(provider).some((model) => model.id === id),
+      `unknown ${provider} model ${id}`,
     );
-    assert(settings.enabledModels.includes(`openai-codex/${id}`));
-    assert.equal(settings.modelThinkingLevels[`openai-codex/${id}`], level);
+    assert(settings.enabledModels.includes(`${provider}/${id}`));
+    assert.equal(settings.modelThinkingLevels[`${provider}/${id}`], level);
+    assert.equal(models.providers[provider]?.modelOverrides?.[id]?.name, name);
+  }
+  for (const [provider, id, name, level] of customPreferences) {
+    assert(settings.enabledModels.includes(`${provider}/${id}`));
+    assert.equal(settings.modelThinkingLevels[`${provider}/${id}`], level);
     assert.equal(
-      models.providers["openai-codex"]?.modelOverrides?.[id]?.name,
+      models.providers[provider]?.models?.find((model) => model.id === id)
+        ?.name,
       name,
     );
   }
@@ -34,7 +43,7 @@ function checkAlignment(settings, models) {
   assert.equal(models.providers.openai?.modelOverrides, undefined);
 }
 
-test("friendly names and reasoning preferences target the scoped Codex models", () => {
+test("friendly names and reasoning preferences target the configured models", () => {
   checkAlignment(read("settings.json"), read("models.json.example"));
 });
 
