@@ -477,6 +477,11 @@ test("sandbox copies safe web defaults without credentials, histories, or model 
       "never",
     );
     assert.equal(
+      readJson(path.join(sandbox.config, "settings.json")).lastChangelogVersion,
+      pins.hostVersion,
+      "sandbox must not show the changelog for the tested Pi version",
+    );
+    assert.equal(
       fs.existsSync(path.join(sandbox.config, "extensions/todo-replay")),
       false,
     );

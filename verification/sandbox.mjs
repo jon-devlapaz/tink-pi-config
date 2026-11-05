@@ -190,6 +190,7 @@ export function createSandbox(agentDir) {
     "+tool_search",
   ];
   settings.defaultProjectTrust = "never";
+  settings.lastChangelogVersion = pins.hostVersion;
   settings.cacheWarming = { enabled: false };
   settings.retry = { enabled: false };
   fs.writeFileSync(
