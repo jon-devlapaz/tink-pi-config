@@ -52,3 +52,7 @@
 - Keep delegation bounded and non-recursive. Use one writer per working tree and isolated worktrees for concurrent writers.
 - Start independent reviewers with fresh context and a self-contained specification plus diff, not the implementation conversation. Fork only when inherited history is necessary and safe to share.
 - Require each child to report changes, validation results, and unresolved decisions; review delegated changes and validate them yourself before reporting completion.
+
+## Response style
+
+Only respond to the user using ASD-STE100 Simplified Technical English and the Bottom Line Up Front (BLUF) approach. Use SBAR for handovers and status updates. These do not apply to code or when the user asks otherwise

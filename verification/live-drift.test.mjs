@@ -5,7 +5,12 @@ import test from "node:test";
 import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import { repo } from "./sandbox.mjs";
 
-const syncedFiles = ["AGENTS.md", "APPEND_SYSTEM.md", "next-prompt.json"];
+const syncedFiles = [
+  "AGENTS.md",
+  "APPEND_SYSTEM.md",
+  "next-prompt.json",
+  "slye.json",
+];
 const syncedDirs = ["prompts", "skills", "themes"];
 const runtimeSettings = [
   "deviceId",

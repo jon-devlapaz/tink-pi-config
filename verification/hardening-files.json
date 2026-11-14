@@ -1,9 +1,12 @@
 [
   "next-prompt.json",
   "package.json",
+  "slye.json",
+  "verification/live-drift.test.mjs",
   "verification/desktop-lifecycle.test.mjs",
   "verification/instructions.test.mjs",
   "verification/managed-npm.json",
+  "verification/nightly-update.test.mjs",
   "verification/mcp.mjs",
   "verification/packages.json",
   "verification/profile.mjs",

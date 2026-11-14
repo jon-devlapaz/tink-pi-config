@@ -21,15 +21,56 @@ export default function (pi: any) {
     ],
     streamSimple: (model: any, context: any, options: any) => {
       const stream = createAssistantMessageEventStream();
-      const n = ++calls;
-      log({ event: "model-call", n });
+      const classifier = options?.sessionId?.startsWith("pi-automode-");
+      if (classifier) {
+        queueMicrotask(() => {
+          const message: any = {
+            role: "assistant",
+            content: [{ type: "text", text: "0" }],
+            api: model.api,
+            provider: model.provider,
+            model: model.id,
+            usage: {
+              input: 1,
+              output: 1,
+              cacheRead: 0,
+              cacheWrite: 0,
+              totalTokens: 2,
+              cost: {
+                input: 0,
+                output: 0,
+                cacheRead: 0,
+                cacheWrite: 0,
+                total: 0,
+              },
+            },
+            stopReason: "stop",
+            timestamp: Date.now(),
+          };
+          log({ event: "classifier-call" });
+          stream.push({ type: "start", partial: message });
+          stream.push({ type: "done", reason: "stop", message });
+          stream.end();
+        });
+        return stream;
+      }
+      const rewrite = context.messages.some((message: any) =>
+        JSON.stringify(message.content).includes("Target:"),
+      );
+      const n = rewrite ? calls : ++calls;
+      log({ event: rewrite ? "rewrite-call" : "model-call", n });
       void (async () => {
         const issueTodo =
           context.messages.at(-1)?.role === "user" &&
           JSON.stringify(context.messages.at(-1)?.content).includes(
             "PLUMBING-CREATE-TODO",
           );
-        const text = n % 2 ? "TURN-COMPLETE" : "Inspect the next test.";
+        const text = rewrite
+          ? "SLYE-REWRITE-OK"
+          : n % 2
+            ? "TURN-COMPLETE " +
+              "This is synthetic prose for the manual rewrite check. ".repeat(8)
+            : "Inspect the next test.";
         const msg: any = {
           role: "assistant",
           content: [],

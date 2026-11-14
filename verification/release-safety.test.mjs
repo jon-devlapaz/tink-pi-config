@@ -28,12 +28,29 @@ test("upstream package dependencies are not overridden locally", () => {
   assert.equal(read("verification/managed-npm.json").overrides, undefined);
 });
 
-test("repository security overrides are scoped floating ranges, not hard pins", () => {
-  const overrides = read("package.json").overrides ?? {};
-  assert.deepEqual(Object.keys(overrides).sort(), ["minimatch", "undici"]);
-  for (const range of Object.values(overrides)) {
-    assert.match(range, /^\^\d+\.\d+\.\d+$/);
-  }
+test("repository dependencies use upstream packages without overrides", () => {
+  assert.equal(read("package.json").overrides, undefined);
+});
+
+test("SLYE defaults to manual rewrites with the existing model", () => {
+  assert.deepEqual(read("slye.json"), {
+    enabled: false,
+    model: { provider: "openai-codex", id: "gpt-5.6-luna" },
+  });
+});
+
+test("the requested communication rule remains in the source instructions", () => {
+  const instructions = fs.readFileSync(
+    new URL("../AGENTS.md", import.meta.url),
+    "utf8",
+  );
+  for (const text of [
+    "ASD-STE100 Simplified Technical English",
+    "Bottom Line Up Front (BLUF)",
+    "Use SBAR for handovers and status updates",
+    "These do not apply to code or when the user asks otherwise",
+  ])
+    assert(instructions.includes(text), "missing communication rule: " + text);
 });
 
 test("private configuration and runtime artifacts stay outside commits", () => {

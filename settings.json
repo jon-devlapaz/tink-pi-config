@@ -12,7 +12,8 @@
     "openai-codex/gpt-6.1-sol",
     "openai-codex/gpt-5.6-luna",
     "freellmapi/fusion",
-    "anthropic/claude-opus-5-5"
+    "anthropic/claude-opus-5-5",
+    "anthropic/claude-haiku-5-5"
   ],
   "modelThinkingLevels": {
     "freellmapi/auto:fast": "off",
@@ -51,7 +52,9 @@
       "source": "npm:pi-web-access"
     },
     "git:github.com/jon-devlapaz/pi-copy-all",
-    "git:github.com/jon-devlapaz/pi-git-info"
+    "git:github.com/jon-devlapaz/pi-git-info",
+    "npm:speak-like-you-eat",
+    "npm:@czottmann/pi-automode"
   ],
   "extensions": [
     "+builtin:mcp",

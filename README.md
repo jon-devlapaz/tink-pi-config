@@ -13,6 +13,8 @@ Here is what makes this setup awesome:
 * **Persistent programs:** Start servers, watchers, and long builds with `hc run --bg`, collect output with `hc read`, and wait with `hc wait`. Desktop visibility is explicit; Pi does not maintain a second terminal dashboard or automatically rotate/delete shared session history.
 * **Stock search:** Pi’s built-in `find`, `grep`, and `ls` tools are enabled. File and content searches respect `.gitignore`; system `fd` and `ripgrep` remain available through `bash` for advanced flags. No custom search extension is required.
 * **Native session history:** Pi’s own compaction and saved-session handling manage context, without a custom history-rewriting or recall extension.
+* **Manual plain-language rewrites:** Stock SLYE provides `/slye`; [slye.json](slye.json) disables automatic rewriting and preserves the existing Luna model. A previous ELI5 rewrite changed English to Russian, so model output still needs review.
+* **Tool-action checks:** Stock pi-automode checks agent tool calls with its upstream defaults and current session model. It is not a sandbox. This repository does not change its safety rules.
 
 ---
 
@@ -24,6 +26,7 @@ Here is what makes this setup awesome:
 ├── APPEND_SYSTEM.md          # Yohaku spirit, preserving Pi's default guidance
 ├── settings.json             # Core Pi configuration and plugin registry
 ├── web-search.json           # Credential-free web safety defaults
+├── slye.json                 # Manual-only rewrite defaults
 ├── models.json.example       # Template for custom/local OpenAI & Gemini models
 ├── bin/pi-doctor             # Post-update diagnostic command
 ├── verification/             # Package sources and isolated smoke tests
@@ -42,14 +45,14 @@ The easiest way to get this running is to let your AI coding agent do the legwor
 Please inspect my system and set up this Pi coding agent configuration:
 
 1. System Check:
-   - Check Node.js version (`node -v`). We need Node 22.19 or higher and Pi 1.5.0.
+   - Check Node.js version (`node -v`). We need Node 24 or higher for SLYE, and Pi 1.5.2.
    - Check if Homebrew is available (on macOS).
    - Check if `ripgrep` (`rg`), `fd`, `tmux`, Python 3, `hc`, and `herdr-app` are installed. Herdr Desktop supplies the agent/program runtime; the verifier requires `hc`.
    - Ask before installing missing system tools using Homebrew (`brew install ripgrep fd tmux`) or the platform equivalent. Install Herdr Desktop separately; the legacy `herdr` CLI is not a substitute.
 
 2. Install Configuration:
    - Keep this repository checkout separate from the live `~/.pi/agent` directory. Back up existing live settings before changing them; preserve credentials, model configuration, and sessions.
-   - Copy or merge approved settings and safe defaults into the live directory. Keep live `settings.json` a regular file, not a symlink into the checkout. Include `web-search.json`, `APPEND_SYSTEM.md`, and the explicit-permission policy in `AGENTS.md`. Leave `SYSTEM.md` absent so Pi retains its default guidance.
+   - Copy or merge approved settings and safe defaults into the live directory. Keep live `settings.json` a regular file, not a symlink into the checkout. Include `web-search.json`, `slye.json`, `APPEND_SYSTEM.md`, and the explicit-permission policy and communication rule in `AGENTS.md`. Leave `SYSTEM.md` absent so Pi retains its default guidance.
    - Run `npm ci` in the source checkout for verification dependencies only.
    - Install configured upstream packages with `PI_CODING_AGENT_DIR="$HOME/.pi/agent" pi update --extensions --no-approve`. Package sources are unpinned; copy-all and git-info come from their standalone GitHub repositories, not local extension copies. Do not introduce local dependency overrides.
    - After review, copy all skills, prompts, and themes into the live directory; the doctor fails if live has extra, missing, or different files.
@@ -70,11 +73,11 @@ Please inspect my system and set up this Pi coding agent configuration:
 Prefer running the commands yourself? Here is the quick walk-through:
 
 ### 1. Prerequisites
-Make sure you have Node 22.19+, Pi 1.5.0, Python 3, tmux, and the CLI utilities installed. Herdr Desktop must supply `hc` and `herdr-app`; `hc` is required by the isolated core verification:
+Make sure you have Node 24+, Pi 1.5.2, Python 3, tmux, and the CLI utilities installed. Herdr Desktop must supply `hc` and `herdr-app`; `hc` is required by the isolated core verification:
 
 ```bash
 # Verify Node version
-node -v   # Should be v22.19.0 or higher
+node -v   # Should be v24.0.0 or higher
 pi --version
 
 # macOS (Homebrew)
@@ -98,7 +101,7 @@ git config filter.strip-pi-runtime.clean "jq 'del(.deviceId, .lastChangelogVersi
 git config filter.strip-pi-runtime.smudge cat
 
 mkdir -p "$HOME/.pi/agent"
-for file in settings.json web-search.json next-prompt.json AGENTS.md APPEND_SYSTEM.md; do
+for file in settings.json web-search.json next-prompt.json slye.json AGENTS.md APPEND_SYSTEM.md; do
   if [ ! -e "$HOME/.pi/agent/$file" ]; then
     cp "$file" "$HOME/.pi/agent/$file"
   fi
@@ -131,7 +134,7 @@ On the configured Mac, the machine-local LaunchAgent `~/Library/LaunchAgents/dev
 launchctl print "gui/$(id -u)/dev.pi.extensions.nightly"
 ```
 
-The scheduler is separate from this repository and uses the stock Pi CLI, not a custom update extension or launcher wrapper. Automatic updates trust upstream maintainers and can introduce compatibility changes.
+The scheduler is separate from this repository and uses the stock Pi CLI, not a custom update extension or launcher wrapper. Its executable must match the installed `pi` command; an old Homebrew path can leave the job unable to start. Repair an existing LaunchAgent through an operator-approved system action, then check its exit status. Automatic updates trust upstream maintainers and can introduce compatibility changes.
 
 ### 4. Verify and install the doctor command
 From the configuration repository:
@@ -143,9 +146,9 @@ mkdir -p ~/.local/bin
 ln -s "$PWD/bin/pi-doctor" ~/.local/bin/pi-doctor
 ```
 
-Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It resolves the global `pi` executable on PATH before npm changes PATH, excluding `node_modules/.bin` SDK binaries, and prints its absolute path. It checks infrastructure settings, the tested Pi host version, configured upstream package identities, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test; `hc` is required for isolated status/persistence verification. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
+Put `~/.local/bin` on PATH. You can then run `pi-doctor` from any directory; `pi-doctor --help` describes its coverage. It resolves the global `pi` executable on PATH before npm changes PATH, excluding `node_modules/.bin` SDK binaries, and prints its absolute path. It checks infrastructure settings, the tested Pi host version, configured upstream package identities, an existing macOS nightly updater, types, regression tests, isolated runtime/TUI behavior, and dependency security. Model fixtures are local and unpaid; npm audits contact the registry. Python 3 and tmux are required for the TUI smoke test; `hc` is required for isolated status/persistence verification. A failing check returns a nonzero exit status; the doctor does not upgrade or repair installed packages.
 
-The doctor checks the approved package list, resource exclusions, stock tools, and trust policy, and fails when the live configuration drifts from this repository: `AGENTS.md`, `APPEND_SYSTEM.md`, `next-prompt.json`, prompts, skills, and themes must match exactly, and `settings.json` may differ only in Pi's runtime keys (`deviceId`, `lastChangelogVersion`, `extensionChangelogVersions`). Commit model or preference changes here and copy them to the live directory. Extension sources are unpinned: upstream version changes do not require editing verification version pins. Installed npm manifests and lockfiles still record resolved versions; these do not pin Pi's configured sources. Keep the development SDK aligned with the Pi CLI independently of extension updates. Do not blindly run `npm audit fix`.
+The doctor checks the approved package list, resource exclusions, stock tools, and trust policy, and fails when the live configuration drifts from this repository: `AGENTS.md`, `APPEND_SYSTEM.md`, `next-prompt.json`, `slye.json`, prompts, skills, and themes must match exactly, and `settings.json` may differ only in Pi's runtime keys (`deviceId`, `lastChangelogVersion`, `extensionChangelogVersions`). Commit model or preference changes here and copy them to the live directory. Extension sources are unpinned: upstream version changes do not require editing verification version pins. Installed npm manifests and lockfiles still record resolved versions; these do not pin Pi's configured sources. Keep the development SDK aligned with the Pi CLI independently of extension updates. Use standard upstream package updates to resolve dependency warnings; keep both repository and installed extension dependencies free of local overrides. Do not blindly run `npm audit fix`.
 
 The standard live location is `~/.pi/agent`, separate from this source checkout. Copy or merge approved settings and safe defaults, including `web-search.json`; do not link live settings or extension code back into the repo. Keep provider credentials in per-machine environment variables, not in the tracked web defaults. `PI_VERIFY_AGENT_DIR` selects an alternate live config; `PI_VERIFY_CLI` selects an explicit executable (prefer an absolute path). A version mismatch fails verification instead of testing the local SDK CLI. Research paths currently assume the standard live directory.
 

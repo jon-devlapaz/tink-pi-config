@@ -170,7 +170,9 @@ export function checkPackages(
 
 export function createSandbox(agentDir) {
   checkPackages(agentDir);
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "pi-config-verify-"));
+  const root = fs.realpathSync(
+    fs.mkdtempSync(path.join(os.tmpdir(), "pi-config-verify-")),
+  );
   const home = path.join(root, "home");
   const config = path.join(home, ".pi/agent");
   const cwd = path.join(root, "workspace");
@@ -214,7 +216,7 @@ export function createSandbox(agentDir) {
       path.join(config, "themes"),
       "dir",
     );
-  for (const relative of ["next-prompt.json", "web-search.json"]) {
+  for (const relative of ["next-prompt.json", "web-search.json", "slye.json"]) {
     const target = path.join(config, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(path.join(repo, relative), target);

@@ -1,5 +1,5 @@
 {
-  "hostVersion": "1.5.0",
+  "hostVersion": "1.5.2",
   "packages": [
     {
       "source": "git:github.com/earendil-works/pi-review",
@@ -50,6 +50,16 @@
       "source": "git:github.com/jon-devlapaz/pi-git-info",
       "kind": "git",
       "path": "github.com/jon-devlapaz/pi-git-info"
+    },
+    {
+      "source": "npm:speak-like-you-eat",
+      "kind": "npm",
+      "name": "speak-like-you-eat"
+    },
+    {
+      "source": "npm:@czottmann/pi-automode",
+      "kind": "npm",
+      "name": "@czottmann/pi-automode"
     }
   ]
 }

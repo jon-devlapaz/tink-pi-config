@@ -65,7 +65,7 @@ assert.equal(
   undefined,
   "installed extensions must use upstream dependencies without local overrides",
 );
-for (const relative of ["next-prompt.json", "web-search.json"]) {
+for (const relative of ["next-prompt.json", "web-search.json", "slye.json"]) {
   assert.deepEqual(
     readJson(path.join(agentDir, relative)),
     readJson(path.join(repo, relative)),

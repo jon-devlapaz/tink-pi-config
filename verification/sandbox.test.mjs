@@ -461,6 +461,13 @@ test("sandbox copies safe web defaults without credentials, histories, or model 
   process.env.UNLISTED_CONFIG_SECRET = "synthetic-fixture-only";
   try {
     const sandbox = createSandbox(agentDir);
+    for (const name of ["root", "home", "config", "cwd"]) {
+      assert.equal(
+        sandbox[name],
+        fs.realpathSync(sandbox[name]),
+        "sandbox paths must be canonical: " + name,
+      );
+    }
     assert.equal(sandbox.env.UNLISTED_CONFIG_SECRET, undefined);
     assert.equal(sandbox.env.PI_TYPESAFE_ENABLED, "0");
     assert.equal(sandbox.env.PI_OFFLINE, "1");
@@ -471,6 +478,10 @@ test("sandbox copies safe web defaults without credentials, histories, or model 
     assert.deepEqual(
       readJson(path.join(sandbox.config, "web-search.json")),
       readJson(path.join(repo, "web-search.json")),
+    );
+    assert.deepEqual(
+      readJson(path.join(sandbox.config, "slye.json")),
+      readJson(path.join(repo, "slye.json")),
     );
     assert.equal(
       readJson(path.join(sandbox.config, "settings.json")).defaultProjectTrust,
