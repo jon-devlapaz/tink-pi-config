@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   DefaultResourceLoader,
   SettingsManager,
+  getAgentDir,
 } from "@earendil-works/pi-coding-agent";
 
 const retired = [
@@ -59,6 +60,36 @@ test("internal orchestration and custom UI packages stay removed from configurat
     const entry = `-${relative}${relative.endsWith(".ts") ? "" : "/index.ts"}`;
     assert(settings.extensions.includes(entry), `missing exclusion ${entry}`);
   }
+});
+
+test("operator-removed automode stays absent from source and live packages", () => {
+  const name = "@czottmann/pi-automode";
+  const agentDir = process.env.PI_VERIFY_AGENT_DIR ?? getAgentDir();
+  const live = (file) =>
+    JSON.parse(fs.readFileSync(path.join(agentDir, file), "utf8"));
+  for (const settings of [read("settings.json"), live("settings.json")]) {
+    assert(
+      !settings.packages.some((entry) =>
+        (typeof entry === "string" ? entry : entry.source).includes(name),
+      ),
+      "removed extension is still configured",
+    );
+  }
+  for (const manifest of [
+    read("verification/managed-npm.json"),
+    live("npm/package.json"),
+  ]) {
+    assert.equal(manifest.dependencies[name], undefined);
+  }
+  assert(
+    !read("verification/packages.json").packages.some(
+      (entry) => entry.name === name,
+    ),
+  );
+  assert.equal(
+    fs.existsSync(path.join(agentDir, "npm/node_modules", name)),
+    false,
+  );
 });
 
 test("retired local resources are absent from source and verification inventories", () => {

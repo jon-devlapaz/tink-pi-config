@@ -32,68 +32,29 @@ const model = {
 initTheme("dark", false);
 let pendingCall;
 let callNumber = 0;
-let classifierCalls = 0;
-let classifierReply = "allow";
 const fixture = (pi) =>
   pi.registerProvider(model.provider, {
     baseUrl: "http://127.0.0.1:1",
     apiKey: "synthetic-only",
     api: model.api,
     models: [model],
-    streamSimple: (selected, context, options) => {
+    streamSimple: (selected) => {
       const stream = createAssistantMessageEventStream();
       queueMicrotask(() => {
-        const classifier = options?.sessionId?.startsWith("pi-automode-");
-        const call = classifier ? undefined : pendingCall;
-        if (classifier) classifierCalls += 1;
-        else pendingCall = undefined;
-        const detailed =
-          classifier &&
-          context.messages.some(
-            (message) =>
-              message.role === "system" &&
-              message.toolsAdded?.some(
-                (tool) => tool.name === "classifier_decision",
-              ),
-          );
-        const classification = detailed
-          ? [
-              {
-                type: "toolCall",
-                id: "classifier-" + classifierCalls,
-                name: "classifier_decision",
-                arguments: {
-                  decision: "block",
-                  tier: "soft_deny",
-                  reason: "Synthetic classifier denial",
-                },
-              },
-            ]
-          : [
-              {
-                type: "text",
-                text:
-                  classifierReply === "invalid"
-                    ? "invalid fixture decision"
-                    : classifierReply === "block"
-                      ? "1"
-                      : "0",
-              },
-            ];
+        const call = pendingCall;
+        pendingCall = undefined;
         const message = {
           role: "assistant",
-          content: classifier
-            ? classification
-            : call
-              ? [
-                  {
-                    type: "toolCall",
-                    id: "fixture-" + ++callNumber,
-                    name: call.name,
-                    arguments: call.args,
-                  },
-                ]
-              : [{ type: "text", text: "PLUMBING-MODEL-OK" }],
+          content: call
+            ? [
+                {
+                  type: "toolCall",
+                  id: "fixture-" + ++callNumber,
+                  name: call.name,
+                  arguments: call.args,
+                },
+              ]
+            : [{ type: "text", text: "PLUMBING-MODEL-OK" }],
           api: selected.api,
           provider: selected.provider,
           model: selected.id,
@@ -111,7 +72,7 @@ const fixture = (pi) =>
               total: 0,
             },
           },
-          stopReason: call || detailed ? "toolUse" : "stop",
+          stopReason: call ? "toolUse" : "stop",
           timestamp: Date.now(),
         };
         stream.push({ type: "start", partial: message });
@@ -241,26 +202,18 @@ try {
       "Desktop-owned orchestration tools must not load",
     );
   });
-  await check(
-    "SLYE and automode load directly from their upstream packages",
-    () => {
-      const slye = loaded.extensions.find((extension) =>
-        extension.path.includes("/speak-like-you-eat/"),
-      );
-      const automode = loaded.extensions.find((extension) =>
-        extension.path.includes("/@czottmann/pi-automode/"),
-      );
-      assert(slye?.commands.has("slye"));
-      assert(slye.entryRenderers?.has("slye.rewrite"));
-      assert(automode?.commands.has("automode"));
-      assert(automode.tools.has("automode_inspect"));
-      assert.equal(
-        JSON.parse(fs.readFileSync(path.join(config, "slye.json"), "utf8"))
-          .enabled,
-        false,
-      );
-    },
-  );
+  await check("SLYE loads directly from its upstream package", () => {
+    const slye = loaded.extensions.find((extension) =>
+      extension.path.includes("/speak-like-you-eat/"),
+    );
+    assert(slye?.commands.has("slye"));
+    assert(slye.entryRenderers?.has("slye.rewrite"));
+    assert.equal(
+      JSON.parse(fs.readFileSync(path.join(config, "slye.json"), "utf8"))
+        .enabled,
+      false,
+    );
+  });
   await check("retained coding and task tools", () => {
     const names = session.getAllTools().map((tool) => tool.name);
     for (const name of [
@@ -310,88 +263,6 @@ try {
       ),
     );
   });
-  await check(
-    "automode classifier permits a harmless shell action",
-    async () => {
-      const before = classifierCalls;
-      assert.match(
-        text(await issue("bash", { command: "printf AUTOMODE-ALLOWED" })),
-        /AUTOMODE-ALLOWED/,
-      );
-      assert(classifierCalls > before);
-    },
-  );
-  await check(
-    "automode classifier denial prevents a filesystem side effect",
-    async () => {
-      const file = path.join(cwd, "classifier-denied.txt");
-      const before = classifierCalls;
-      classifierReply = "block";
-      try {
-        assert.match(
-          text(
-            await issue(
-              "bash",
-              { command: `printf denied > ${JSON.stringify(file)}` },
-              true,
-            ),
-          ),
-          /Synthetic classifier denial/,
-        );
-        assert(classifierCalls >= before + 2);
-        assert.equal(fs.existsSync(file), false);
-      } finally {
-        classifierReply = "allow";
-      }
-    },
-  );
-  await check(
-    "automode fails closed on an invalid classifier response",
-    async () => {
-      const file = path.join(cwd, "invalid-classifier.txt");
-      const before = classifierCalls;
-      classifierReply = "invalid";
-      try {
-        assert.match(
-          text(
-            await issue(
-              "bash",
-              { command: `printf denied > ${JSON.stringify(file)}` },
-              true,
-            ),
-          ),
-          /fails closed/,
-        );
-        assert(classifierCalls > before);
-        assert.equal(fs.existsSync(file), false);
-      } finally {
-        classifierReply = "allow";
-      }
-    },
-  );
-  await check(
-    "automode deterministic checks precede the classifier",
-    async () => {
-      const file = path.join(sandbox.home, ".ssh", "authorized_keys");
-      const before = classifierCalls;
-      await issue(
-        "write",
-        { path: file, content: "synthetic-not-a-key" },
-        true,
-      );
-      assert.equal(classifierCalls, before);
-      assert.equal(fs.existsSync(file), false);
-    },
-  );
-  await check(
-    "automode inspection reports allowed and denied decisions",
-    async () => {
-      const result = await issue("automode_inspect", { action: "status" });
-      assert.match(text(result), /enabled: yes/);
-      assert(result.details.state.classifierAllowed > 0);
-      assert(result.details.state.classifierDenied >= 2);
-    },
-  );
   await check("stock find real binary", async () =>
     assert(
       text(await issue("find", { path: cwd, pattern: "fixture.ts" })).includes(

@@ -55,11 +55,6 @@
       "source": "npm:speak-like-you-eat",
       "kind": "npm",
       "name": "speak-like-you-eat"
-    },
-    {
-      "source": "npm:@czottmann/pi-automode",
-      "kind": "npm",
-      "name": "@czottmann/pi-automode"
     }
   ]
 }

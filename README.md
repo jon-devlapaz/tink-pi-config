@@ -14,7 +14,7 @@ Here is what makes this setup awesome:
 * **Stock search:** Pi’s built-in `find`, `grep`, and `ls` tools are enabled. File and content searches respect `.gitignore`; system `fd` and `ripgrep` remain available through `bash` for advanced flags. No custom search extension is required.
 * **Native session history:** Pi’s own compaction and saved-session handling manage context, without a custom history-rewriting or recall extension.
 * **Manual plain-language rewrites:** Stock SLYE provides `/slye`; [slye.json](slye.json) disables automatic rewriting and preserves the existing Luna model. A previous ELI5 rewrite changed English to Russian, so model output still needs review.
-* **Tool-action checks:** Stock pi-automode checks agent tool calls with its upstream defaults and current session model. It is not a sandbox. This repository does not change its safety rules.
+* **Stock safety behavior:** Pi retains project-trust prompts and the explicit-permission policy in `AGENTS.md`. The operator removed automode, so its classifier-specific fixtures and checks are removed too; stock tool and trust-policy checks remain. Instructions are not a sandbox.
 
 ---
 

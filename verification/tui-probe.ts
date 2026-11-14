@@ -19,41 +19,8 @@ export default function (pi: any) {
         maxTokens: 4096,
       },
     ],
-    streamSimple: (model: any, context: any, options: any) => {
+    streamSimple: (model: any, context: any) => {
       const stream = createAssistantMessageEventStream();
-      const classifier = options?.sessionId?.startsWith("pi-automode-");
-      if (classifier) {
-        queueMicrotask(() => {
-          const message: any = {
-            role: "assistant",
-            content: [{ type: "text", text: "0" }],
-            api: model.api,
-            provider: model.provider,
-            model: model.id,
-            usage: {
-              input: 1,
-              output: 1,
-              cacheRead: 0,
-              cacheWrite: 0,
-              totalTokens: 2,
-              cost: {
-                input: 0,
-                output: 0,
-                cacheRead: 0,
-                cacheWrite: 0,
-                total: 0,
-              },
-            },
-            stopReason: "stop",
-            timestamp: Date.now(),
-          };
-          log({ event: "classifier-call" });
-          stream.push({ type: "start", partial: message });
-          stream.push({ type: "done", reason: "stop", message });
-          stream.end();
-        });
-        return stream;
-      }
       const rewrite = context.messages.some((message: any) =>
         JSON.stringify(message.content).includes("Target:"),
       );

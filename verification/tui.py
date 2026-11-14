@@ -91,8 +91,6 @@ try:
         assert not any(name in event["names"] for name in ("fd", "rg")), "custom search tool loaded"
     CHECKS.append({"name": "stock-search-tools-active-after-reload", "ok": True})
     CHECKS.append({"name": "no-ui-or-orchestration-overrides", "ok": True})
-    command("/automode status")
-    wait("automode-status", lambda e, s: "enabled: yes" in s and "classifier allowed:" in s)
     command("/slye")
     wait("slye-manual", lambda e, s: "SLYE-REWRITE-OK" in s and "Speak like you eat" in s and sum(x["event"] == "rewrite-call" for x in e) == 2)
     assert "ELI5" in tm("capture-pane", "-p", "-t", LABEL) and "Light" in tm("capture-pane", "-p", "-t", LABEL)

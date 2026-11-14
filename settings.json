@@ -53,8 +53,7 @@
     },
     "git:github.com/jon-devlapaz/pi-copy-all",
     "git:github.com/jon-devlapaz/pi-git-info",
-    "npm:speak-like-you-eat",
-    "npm:@czottmann/pi-automode"
+    "npm:speak-like-you-eat"
   ],
   "extensions": [
     "+builtin:mcp",

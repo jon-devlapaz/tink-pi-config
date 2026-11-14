@@ -2,7 +2,6 @@
   "name": "pi-extensions",
   "private": true,
   "dependencies": {
-    "@czottmann/pi-automode": "latest",
     "@earendil-works/pi-voice": "latest",
     "@jetserge/next-prompt": "latest",
     "@juicesharp/rpiv-ask-user-question": "latest",
