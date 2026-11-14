@@ -7,6 +7,11 @@
       "path": "github.com/earendil-works/pi-review"
     },
     {
+      "source": "npm:pi-better",
+      "kind": "npm",
+      "name": "pi-better"
+    },
+    {
       "source": "npm:pi-typesafe",
       "kind": "npm",
       "name": "pi-typesafe"
