@@ -75,10 +75,7 @@ for (const relative of ["next-prompt.json", "web-search.json", "slye.json"]) {
 console.log(
   "PASS host version, floating upstream packages, and infrastructure settings",
 );
-run(path.join(repo, "node_modules/.bin/prettier"), [
-  "--check",
-  ...readJson(path.join(repo, "verification/hardening-files.json")),
-]);
+run("npm", ["run", "format:check"]);
 run("npm", ["run", "check"]);
 run("npm", ["test"]);
 run("python3", ["verification/probe-cleanup.test.py"]);

@@ -3,6 +3,7 @@ import { execFileSync, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { format } from "prettier";
 import { repo } from "./sandbox.mjs";
 
 const gitConfig = (key) => {
@@ -54,4 +55,29 @@ test("settings.json clean filter is defined as documented in the README", () => 
     enabledModels: ["provider/model"],
     theme: "system",
   });
+});
+
+test("settings formatting preserves the clean-filter representation", async () => {
+  const scripts = JSON.parse(
+    fs.readFileSync(path.join(repo, "package.json"), "utf8"),
+  ).scripts;
+  for (const name of ["format", "format:check"]) {
+    assert(
+      scripts[name].includes('"!settings.json"'),
+      name + " must format settings separately",
+    );
+    assert(
+      scripts[name].endsWith("--parser json-stringify settings.json"),
+      name + " must match the clean filter's JSON representation",
+    );
+  }
+  const filtered = execSync(gitConfig("filter.strip-pi-runtime.clean"), {
+    cwd: repo,
+    input: JSON.stringify({
+      deviceId: "synthetic",
+      defaultTools: ["+grep", "+find", "+ls"],
+    }),
+    encoding: "utf8",
+  });
+  assert.equal(await format(filtered, { parser: "json-stringify" }), filtered);
 });

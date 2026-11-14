@@ -15,8 +15,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "verify:updates": "node verification/verify-updates.mjs",
-    "format": "prettier --write \"verification/*.{mjs,ts}\" \"*.json\"",
-    "format:check": "prettier --check \"verification/*.{mjs,ts}\" \"*.json\"",
+    "format": "prettier --write \"verification/*.{mjs,ts}\" \"*.json\" \"!settings.json\" && prettier --write --parser json-stringify settings.json",
+    "format:check": "prettier --check \"verification/*.{mjs,ts}\" \"*.json\" \"!settings.json\" && prettier --check --parser json-stringify settings.json",
     "test": "node --test verification/*.test.mjs"
   }
 }

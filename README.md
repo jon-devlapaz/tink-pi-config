@@ -114,7 +114,7 @@ else
 fi
 ```
 
-The clean filter keeps Pi's machine-specific `deviceId` and `lastChangelogVersion` out of commits; `enabledModels` is versioned. Git does not copy filter definitions on clone, so `pi-doctor` fails until they are set.
+The clean filter keeps Pi's machine-specific `deviceId` and `lastChangelogVersion` out of commits; `enabledModels` is versioned. Git does not copy filter definitions on clone, so `pi-doctor` fails until they are set. The formatting scripts use Prettier's `json-stringify` parser for `settings.json` to preserve the filter's JSON layout across checkouts.
 
 Review and merge existing configuration instead of overwriting it. Installations live under `~/.pi/agent/npm` and `~/.pi/agent/git`, outside the source checkout. Copy-all and git-info are upstream Git packages; do not also load local copies. Authentication and browser/microphone permissions are separate, per-machine steps. Credentials and runtime histories are not shipped.
 
