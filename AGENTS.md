@@ -42,6 +42,7 @@
 - Herdr Desktop is the home for visible, persistent agents and programs. Route all authorized delegation through interactive `hc` terminals, using configured templates, authenticated Pi defaults, or the subagents skill's model routing rather than inventing model flags. Pi supplies coding tools and native status/title reporting, not internal subagent/workflow/side-agent orchestration.
 - The legacy `herdr` CLI, `herdr_*` tools, and native Herdr TUI inspector target a separate server, not Desktop. Do not use them for new work, including from cmux or an inherited TUI environment. Never substitute `hc` through `HERDR_BIN`; the command APIs differ.
 - Start interactive Pi inside Desktop for automatic OSC 7501 status reporting. Preserve existing TUI/cmux agents; do not migrate, reload, stop, or message unrelated sessions.
+- Only when the user types `/better`, stock pi-better may start its temporary prompt helper outside Herdr. The helper receives the saved chat and can run shell commands with your account's access. Its read-only instructions do not sandbox the shell. Leave the draft for the user to review and submit. Route all other delegated work through Herdr Desktop.
 - Keep long-lived programs in `hc` terminals. Preserve retained sessions and worktrees until cleanup is explicitly authorized.
 
 ## Delegation

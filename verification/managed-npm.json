@@ -6,6 +6,7 @@
     "@jetserge/next-prompt": "latest",
     "@juicesharp/rpiv-ask-user-question": "latest",
     "@juicesharp/rpiv-todo": "latest",
+    "pi-better": "latest",
     "pi-typesafe": "latest",
     "pi-web-access": "latest"
   }
