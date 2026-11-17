@@ -114,6 +114,10 @@ const web = loaded.extensions.find((extension) =>
   extension.path.includes("/pi-web-access/"),
 );
 assert(web, "globally enabled web-access extension did not load");
+const emphasis = loaded.extensions.find((extension) =>
+  extension.path.includes("/pi-emphasis/"),
+);
+assert(emphasis, "configured pi-emphasis extension did not load");
 for (const tool of [
   "web_search",
   "source_check",

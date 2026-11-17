@@ -14,8 +14,11 @@
 
 ## Style
 
-- Be terse and code-first: diffs and commands first, prose only for what is non-obvious.
-- No preamble, no summaries of what was just done unless asked.
+- Start with the answer, result, or decision the user needs. Use plain, natural English; explain technical terms when needed.
+- Match detail to the task: short answers for simple questions, enough explanation to understand complex work and its limits.
+- Use short paragraphs and a few related bullets. Add headings only when they help navigation; bold key decisions and actions, and use inline code for copyable literals.
+- Put commands or diffs first when using them is the user's next step. Omit routine preambles and repeated completion summaries.
+- Use status pills sparingly: `[[Done]]` for checked completion, `[[Needs you]]` for a user action, `[[Blocked]]` for a blocker, and `[[Unverified]]` for a claim you could not check. State the needed action or check beside attention pills; ordinary replies need no label.
 - Ask instead of guessing when a consequential requirement is ambiguous.
 
 ## Safety and Git
@@ -55,4 +58,4 @@
 
 ## Response style
 
-Only respond to the user using ASD-STE100 Simplified Technical English and the Bottom Line Up Front (BLUF) approach. Use SBAR for handovers and status updates. These do not apply to code or when the user asks otherwise
+Only respond to the user using ASD-STE100 Simplified Technical English and the Bottom Line Up Front (BLUF) approach. Use SBAR for handovers and status updates. These do not apply to code or when the user asks otherwise.

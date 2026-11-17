@@ -65,7 +65,11 @@ try:
     assert title == "π - workspace", "non-stock terminal title: " + title
     CHECKS.append({"name": "stock-quiet-startup-title-footer", "ok": True})
     command("Run synthetic fixture PLUMBING-TUI-7214.")
-    wait("ghost", lambda e, s: "Inspect the next test." in s and "TURN-COMPLETE" in s and any(x["event"] == "settled" for x in e))
+    wait("turn-settled", lambda e, s: "TURN-COMPLETE" in s and any(x["event"] == "settled" for x in e))
+    assert sum(x["event"] == "model-call" for x in events()) == 1, "manual-only next-prompt made an automatic request"
+    tm("send-keys", "-t", LABEL, "Escape")
+    tm("send-keys", "-t", LABEL, "/")
+    wait("ghost", lambda e, s: "Inspect the next test." in s and "TURN-COMPLETE" in s and sum(x["event"] == "model-call" for x in e) == 2)
     assert not any(x["event"] == "rewrite-call" for x in events()), "manual-only SLYE made an automatic rewrite request"
     CHECKS.append({"name": "slye-manual-only-no-automatic-requests", "ok": True})
     tm("resize-window", "-t", LABEL, "-x", "60", "-y", "36")

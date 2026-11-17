@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { getAgentDir } from "@earendil-works/pi-coding-agent";
@@ -17,12 +18,25 @@ const runtimeSettings = [
   "lastChangelogVersion",
   "extensionChangelogVersions",
 ];
+const generatedMarkers = new Set([
+  ".DS_Store",
+  ".flywheel-installed-by-pi-mono",
+]);
 
 function listFiles(root, relative) {
   const dir = path.join(root, relative);
   if (!fs.existsSync(dir)) return [];
+  const piMonoSkills =
+    relative === "skills" &&
+    fs.existsSync(path.join(dir, ".flywheel-installed-by-pi-mono"));
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.name === ".DS_Store") return [];
+    if (generatedMarkers.has(entry.name)) return [];
+    if (
+      piMonoSkills &&
+      entry.isDirectory() &&
+      entry.name.startsWith("flywheel")
+    )
+      return [];
     const child = path.join(relative, entry.name);
     return entry.isDirectory() ? listFiles(root, child) : [child];
   });
@@ -56,6 +70,23 @@ function findDrift(source, live) {
   }
   return drift;
 }
+
+test("Pi Mono-owned Flywheel skills stay outside this repository inventory", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "pi-config-live-drift-"));
+  const skills = path.join(root, "skills");
+  try {
+    fs.mkdirSync(path.join(skills, "flywheel-auto"), { recursive: true });
+    fs.mkdirSync(path.join(skills, "operator-skill"));
+    fs.writeFileSync(path.join(skills, ".flywheel-installed-by-pi-mono"), "");
+    fs.writeFileSync(path.join(skills, "flywheel-auto/SKILL.md"), "external\n");
+    fs.writeFileSync(path.join(skills, "operator-skill/SKILL.md"), "managed\n");
+    assert.deepEqual(listFiles(root, "skills"), [
+      "skills/operator-skill/SKILL.md",
+    ]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("live configuration matches the repository", () => {
   const agentDir = process.env.PI_VERIFY_AGENT_DIR ?? getAgentDir();

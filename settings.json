@@ -53,7 +53,8 @@
     },
     "git:github.com/jon-devlapaz/pi-copy-all",
     "git:github.com/jon-devlapaz/pi-git-info",
-    "npm:speak-like-you-eat"
+    "npm:speak-like-you-eat",
+    "git:github.com/johnlindquist/pi-emphasis"
   ],
   "extensions": [
     "+builtin:mcp",
@@ -80,5 +81,8 @@
   },
   "showCacheMissNotices": true,
   "tuiMode": "fullscreen",
-  "fullscreenExitOutput": "transcript"
+  "fullscreenExitOutput": "transcript",
+  "mcp": {
+    "servers": {}
+  }
 }

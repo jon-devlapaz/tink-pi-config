@@ -55,6 +55,11 @@
       "source": "npm:speak-like-you-eat",
       "kind": "npm",
       "name": "speak-like-you-eat"
+    },
+    {
+      "source": "git:github.com/johnlindquist/pi-emphasis",
+      "kind": "git",
+      "path": "github.com/johnlindquist/pi-emphasis"
     }
   ]
 }
